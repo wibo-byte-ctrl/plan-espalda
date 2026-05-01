@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="YouTube">
+<title>YouTube</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0f0f0f;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, 'Helvetica Neue', sans-serif;
+    color: #fff;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  .logo-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    animation: fadeIn 0.6s ease;
+  }
+
+  .yt-icon {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+    background: #ff0000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(255,0,0,0.35);
+  }
+
+  .yt-icon svg {
+    width: 52px;
+    height: 52px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+
+  .sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .btn {
+    margin-top: 36px;
+    background: #ff0000;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 16px 44px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: -0.2px;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+
+  .btn:active {
+    transform: scale(0.96);
+    opacity: 0.85;
+  }
+
+  .note {
+    margin-top: 20px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+    max-width: 260px;
+    line-height: 1.6;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="logo-wrap">
+  <div class="yt-icon">
+    <svg viewBox="0 0 68 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M66.5 7.5C65.7 4.7 63.5 2.5 60.7 1.7C55.4 0 34 0 34 0S12.6 0 7.3 1.7C4.5 2.5 2.3 4.7 1.5 7.5C0 13 0 24 0 24S0 35 1.5 40.5C2.3 43.3 4.5 45.5 7.3 46.3C12.6 48 34 48 34 48S55.4 48 60.7 46.3C63.5 45.5 65.7 43.3 66.5 40.5C68 35 68 24 68 24S68 13 66.5 7.5Z" fill="white" fill-opacity="0.2"/>
+      <path d="M27 34L45 24L27 14V34Z" fill="white"/>
+    </svg>
+  </div>
+
+  <h1>YouTube</h1>
+  <p class="sub">Abre YouTube en el navegador<br>para reproducir con pantalla bloqueada</p>
+
+  <button class="btn" onclick="openYouTube()">Abrir YouTube</button>
+
+  <p class="note">La reproducción en segundo plano funciona cuando usas el navegador en lugar de la app</p>
+</div>
+
+<script>
+function openYouTube() {
+  // Forces YouTube mobile web, avoids app redirect
+  window.location.href = "https://m.youtube.com/?app=desktop";
+}
+
+// Auto-redirect after a short moment if launched from home screen
+if (navigator.standalone) {
+  setTimeout(openYouTube, 800);
+}
+</script>
+
+</body>
+</html>
