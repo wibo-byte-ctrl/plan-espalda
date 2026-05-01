@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan de Espalda — Seguimiento</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --accent: #e8ff47;
+    --accent2: #47ffb8;
+    --text: #f0f0f0;
+    --muted: #666;
+    --border: #2e2e2e;
+  }
+ 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+ 
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+ 
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    line-height: 1;
+  }
+ 
+  header p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 6px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+ 
+  .week-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+ 
+  .week-selector button {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+ 
+  .week-selector button:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+ 
+  #week-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
+    color: var(--accent2);
+    min-width: 120px;
+    text-align: center;
+  }
+ 
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+ 
+  .day-btn {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    color: var(--muted);
+    padding: 14px 8px;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+ 
+  .day-btn:hover { border-color: var(--accent); color: var(--text); }
+  .day-btn.active { border-color: var(--accent); background: rgba(232,255,71,0.08); color: var(--accent); }
+  .day-btn.completed { border-color: var(--accent2); background: rgba(71,255,184,0.08); color: var(--accent2); }
+  .day-btn .check { font-size: 0.8rem; display: block; }
+ 
+  .session-panel {
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+ 
+  .session-header {
+    background: var(--surface2);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+ 
+  .session-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+ 
+  .finish-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity 0.15s;
+  }
+ 
+  .finish-btn:hover { opacity: 0.85; }
+ 
+  .exercise-list { padding: 12px; }
+ 
+  .exercise-card {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+  }
+ 
+  .exercise-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+ 
+  .exercise-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+ 
+  .muscle-tag {
+    font-size: 0.68rem;
+    background: rgba(232,255,71,0.12);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+ 
+  .info-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .info-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+ 
+  .sets-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+ 
+  .set-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 70px;
+    flex: 1;
+  }
+ 
+  .set-item:hover { border-color: var(--accent); }
+  .set-item.done { border-color: var(--accent2); background: rgba(71,255,184,0.1); }
+ 
+  .set-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+ 
+  .set-reps {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+ 
+  .set-done-icon { font-size: 1rem; display: none; }
+  .set-item.done .set-done-icon { display: block; }
+  .set-item.done .set-reps { display: none; }
+ 
+  /* GUIDE MODAL */
+  .guide-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(8px);
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    overflow-y: auto;
+  }
+  .guide-overlay.active { opacity: 1; pointer-events: all; }
+ 
+  .guide-inner {
+    padding: 24px 20px 48px;
+    max-width: 500px;
+    margin: 0 auto;
+    width: 100%;
+  }
+ 
+  .guide-close {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+  }
+ 
+  .guide-close button {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .guide-close button:hover { border-color: #ff4747; color: #ff4747; }
+ 
+  .guide-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+ 
+  .guide-muscle {
+    font-size: 0.75rem;
+    color: var(--accent2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+ 
+  .guide-img {
+    width: 100%;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    object-fit: cover;
+    max-height: 220px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+  }
+ 
+  .guide-anchor-box {
+    background: rgba(71,255,184,0.07);
+    border: 1px solid rgba(71,255,184,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+ 
+  .guide-anchor-label {
+    font-size: 0.7rem;
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+ 
+  .guide-anchor-img {
+    width: 100%;
+    border-radius: 8px;
+    max-height: 140px;
+    object-fit: cover;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+  }
+ 
+  .guide-anchor-text {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+ 
+  .guide-steps {
+    list-style: none;
+    margin-bottom: 16px;
+  }
+ 
+  .guide-steps li {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text);
+  }
+ 
+  .step-num {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+ 
+  .guide-tip {
+    background: rgba(232,255,71,0.07);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+ 
+  .guide-tip strong { color: var(--accent); }
+ 
+  /* STRETCHING POPUP */
+  .stretch-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(10px);
+    z-index: 1200;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    overflow-y: auto;
+  }
+  .stretch-overlay.active { opacity: 1; pointer-events: all; }
+ 
+  .stretch-inner {
+    padding: 24px 20px 60px;
+    max-width: 500px;
+    margin: 0 auto;
+    width: 100%;
+  }
+ 
+  .stretch-header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+ 
+  .stretch-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.06em;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+ 
+  .stretch-header p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+ 
+  .stretch-progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+ 
+  .stretch-progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+ 
+  .stretch-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+ 
+  .stretch-card {
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+ 
+  .stretch-card.checked { border-color: var(--accent2); }
+ 
+  .stretch-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+ 
+  .stretch-card-left { display: flex; align-items: center; gap: 12px; }
+ 
+  .stretch-check {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    color: transparent;
+  }
+ 
+  .stretch-card.checked .stretch-check {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: #000;
+  }
+ 
+  .stretch-card-info { flex: 1; }
+ 
+  .stretch-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    margin-bottom: 2px;
+  }
+ 
+  .stretch-card.checked .stretch-name { color: var(--accent2); }
+ 
+  .stretch-meta {
+    font-size: 0.72rem;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+  }
+ 
+  .stretch-time {
+    background: rgba(71,255,184,0.1);
+    color: var(--accent2);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+ 
+  .stretch-info-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+    margin-left: 8px;
+  }
+  .stretch-info-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+ 
+  .stretch-detail {
+    display: none;
+    padding: 0 16px 14px;
+    border-top: 1px solid var(--border);
+  }
+ 
+  .stretch-detail.open { display: block; }
+ 
+  .stretch-detail img {
+    width: 100%;
+    border-radius: 10px;
+    max-height: 180px;
+    object-fit: cover;
+    margin: 12px 0 10px;
+    border: 1px solid var(--border);
+  }
+ 
+  .stretch-detail-steps {
+    list-style: none;
+    margin-bottom: 10px;
+  }
+ 
+  .stretch-detail-steps li {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text);
+  }
+ 
+  .stretch-step-num {
+    background: var(--accent2);
+    color: #000;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.8rem;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+ 
+  .stretch-tip {
+    background: rgba(71,255,184,0.07);
+    border-left: 3px solid var(--accent2);
+    padding: 8px 12px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+ 
+  .stretch-tip strong { color: var(--accent2); }
+ 
+  .stretch-finish-btn {
+    display: block;
+    width: 100%;
+    margin-top: 24px;
+    background: var(--accent2);
+    color: #000;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+ 
+  .stretch-finish-btn:hover { opacity: 0.85; }
+  .stretch-finish-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+ 
+  .progress-bar-wrap {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+ 
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.04em;
+  }
+ 
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+ 
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 10px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+ 
+  .stats-section {
+    margin-top: 28px;
+    padding: 20px;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+ 
+  .stats-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    color: var(--accent2);
+    margin-bottom: 16px;
+  }
+ 
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+ 
+  .stat-box {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+ 
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+ 
+  .stat-desc {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+  }
+ 
+  .reset-btn {
+    display: block;
+    width: 100%;
+    margin-top: 28px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 12px;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.15s;
+  }
+ 
+  .reset-btn:hover { border-color: #ff4747; color: #ff4747; }
+ 
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--accent);
+    color: #000;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: transform 0.3s ease;
+    z-index: 999;
+    white-space: nowrap;
+  }
+ 
+  .toast.show { transform: translateX(-50%) translateY(0); }
+ 
+  /* TIMER OVERLAY */
+  .timer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(6px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+ 
+  .timer-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+ 
+  .timer-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+ 
+  .timer-ring {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin-bottom: 24px;
+  }
+ 
+  .timer-ring svg {
+    transform: rotate(-90deg);
+    width: 180px;
+    height: 180px;
+  }
+ 
+  .timer-ring svg circle {
+    fill: none;
+    stroke-width: 6;
+  }
+ 
+  .timer-ring .bg-circle { stroke: var(--border); }
+  .timer-ring .fg-circle {
+    stroke: var(--accent2);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+  }
+ 
+  .timer-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: var(--text);
+    line-height: 1;
+  }
+ 
+  .timer-number.urgent { color: #ff4747; }
+ 
+  .timer-exercise-name {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 28px;
+    text-align: center;
+    padding: 0 20px;
+  }
+ 
+  .timer-actions {
+    display: flex;
+    gap: 12px;
+  }
+ 
+  .timer-skip-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+ 
+  .timer-skip-btn:hover { border-color: var(--accent); color: var(--accent); }
+ 
+  .timer-add-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+ 
+  .timer-add-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+</style>
+</head>
+<body>
+ 
+<header>
+  <h1>Plan Espalda</h1>
+  <p>Seguimiento de entrenamiento · 3 días/semana</p>
+</header>
+ 
+<div class="week-selector">
+  <button onclick="changeWeek(-1)">‹</button>
+  <span id="week-label">SEMANA 1</span>
+  <button onclick="changeWeek(1)">›</button>
+</div>
+ 
+<div class="days-grid" id="days-grid"></div>
+ 
+<div class="session-panel">
+  <div class="session-header">
+    <h2 id="session-title">DÍA A</h2>
+    <button class="finish-btn" onclick="finishSession()">✓ Terminar sesión</button>
+  </div>
+  <div class="exercise-list" id="exercise-list"></div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span>Progreso sesión</span>
+      <span id="progress-text">0 / 21 series</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+</div>
+ 
+<div class="stats-section">
+  <div class="stats-title">📊 Mis estadísticas</div>
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-num" id="stat-sessions">0</div>
+      <div class="stat-desc">Sesiones</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="stat-sets">0</div>
+      <div class="stat-desc">Series totales</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="stat-weeks">0</div>
+      <div class="stat-desc">Semanas</div>
+    </div>
+  </div>
+</div>
+ 
+<button class="reset-btn" onclick="resetAll()">🗑 Reiniciar todo el progreso</button>
+<!-- STRETCHING POPUP -->
+<div class="stretch-overlay" id="stretch-overlay">
+  <div class="stretch-inner">
+    <div class="stretch-header">
+      <h2>🧘 Estiramientos</h2>
+      <p>Vuelta a la calma · 6 ejercicios · ~8 min</p>
+    </div>
+    <div class="stretch-progress-row">
+      <span id="stretch-done-label">0 de 6 completados</span>
+      <span id="stretch-pct">0%</span>
+    </div>
+    <div class="stretch-progress-bar">
+      <div class="stretch-progress-fill" id="stretch-progress-fill" style="width:0%"></div>
+    </div>
+    <div id="stretch-list"></div>
+    <button class="stretch-finish-btn" id="stretch-finish-btn" onclick="closeStretch()" disabled>
+      ✓ SESIÓN COMPLETADA
+    </button>
+  </div>
+</div>
+ 
+<!-- EXERCISE GUIDE MODAL -->
+<div class="guide-overlay" id="guide-overlay">
+  <div class="guide-inner">
+    <div class="guide-close"><button onclick="closeGuide()">✕</button></div>
+    <div id="guide-content"></div>
+  </div>
+</div>
+ 
+<!-- REST TIMER OVERLAY -->
+<div class="timer-overlay" id="timer-overlay">
+  <div class="timer-label">⏱ Descanso</div>
+  <div class="timer-ring">
+    <svg viewBox="0 0 180 180">
+      <circle class="bg-circle" cx="90" cy="90" r="82"/>
+      <circle class="fg-circle" id="timer-arc" cx="90" cy="90" r="82"
+        stroke-dasharray="515.2"
+        stroke-dashoffset="0"/>
+    </svg>
+    <div class="timer-number" id="timer-number">60</div>
+  </div>
+  <div class="timer-exercise-name" id="timer-exercise-name"></div>
+  <div class="timer-actions">
+    <button class="timer-add-btn" onclick="addTime(15)">+15s</button>
+    <button class="timer-skip-btn" onclick="skipTimer()">Saltar ›</button>
+  </div>
+</div>
+ 
+<div class="toast" id="toast"></div>
+ 
+<script>
+// ── TIMER ──────────────────────────────────────────────
+const TIMER_DURATION = 60;
+const CIRCUMFERENCE = 2 * Math.PI * 82; // 515.2
+let timerInterval = null;
+let timerRemaining = 0;
+let timerTotal = TIMER_DURATION;
+ 
+function playWhistle() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const times = [0, 0.22, 0.44];
+    times.forEach(offset => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(2800, ctx.currentTime + offset);
+      osc.frequency.exponentialRampToValueAtTime(2200, ctx.currentTime + offset + 0.18);
+      gain.gain.setValueAtTime(0, ctx.currentTime + offset);
+      gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.18);
+      osc.start(ctx.currentTime + offset);
+      osc.stop(ctx.currentTime + offset + 0.2);
+    });
+  } catch(e) {}
+}
+ 
+function startTimer(exerciseName) {
+  if (timerInterval) clearInterval(timerInterval);
+  timerRemaining = TIMER_DURATION;
+  timerTotal = TIMER_DURATION;
+  document.getElementById('timer-exercise-name').textContent = '↻ Siguiente: ' + exerciseName;
+  updateTimerDisplay();
+  document.getElementById('timer-overlay').classList.add('active');
+ 
+  timerInterval = setInterval(() => {
+    timerRemaining--;
+    updateTimerDisplay();
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      playWhistle();
+      setTimeout(() => document.getElementById('timer-overlay').classList.remove('active'), 800);
+    }
+  }, 1000);
+}
+ 
+function updateTimerDisplay() {
+  const el = document.getElementById('timer-number');
+  const arc = document.getElementById('timer-arc');
+  el.textContent = timerRemaining;
+  el.className = 'timer-number' + (timerRemaining <= 10 ? ' urgent' : '');
+  const progress = timerRemaining / timerTotal;
+  arc.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+  arc.style.stroke = timerRemaining <= 10 ? '#ff4747' : 'var(--accent2)';
+}
+ 
+function skipTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  document.getElementById('timer-overlay').classList.remove('active');
+}
+ 
+function addTime(secs) {
+  timerRemaining = Math.min(timerRemaining + secs, 180);
+  timerTotal = Math.max(timerTotal, timerRemaining);
+  updateTimerDisplay();
+}
+ 
+// ── APP ─────────────────────────────────────────────────
+const EXERCISES = [
+  { name: "Superman", sets: 3, reps: "12-15", muscle: "Lumbar" },
+  { name: "Bird-Dog", sets: 3, reps: "10 c/lado", muscle: "Estabilizadores" },
+  { name: "Face Pull con banda", sets: 3, reps: "15", muscle: "Trapecios/Romboides" },
+  { name: "Remo con banda", sets: 3, reps: "10-12", muscle: "Dorsal" },
+  { name: "Pull-apart con banda", sets: 3, reps: "15", muscle: "Romboides" },
+  { name: "Pulldown con banda", sets: 3, reps: "12", muscle: "Dorsal ancho" },
+  { name: "Puente con pausa", sets: 3, reps: "12", muscle: "Lumbar baja" }
+];
+ 
+const TOTAL_SETS = EXERCISES.reduce((s, e) => s + e.sets, 0);
+const DAYS = ["DÍA A", "DÍA B", "DÍA C"];
+ 
+let state = JSON.parse(localStorage.getItem('espalda_state') || 'null') || {
+  week: 1,
+  activeDay: 0,
+  sets: {},
+  completedSessions: [],
+  totalSets: 0
+};
+ 
+function save() { localStorage.setItem('espalda_state', JSON.stringify(state)); }
+ 
+function key(week, day, ex, set) { return `${week}_${day}_${ex}_${set}`; }
+ 
+function changeWeek(d) {
+  state.week = Math.max(1, Math.min(12, state.week + d));
+  save();
+  render();
+}
+ 
+function selectDay(d) {
+  state.activeDay = d;
+  save();
+  render();
+}
+ 
+function toggleSet(ex, set) {
+  const k = key(state.week, state.activeDay, ex, set);
+  state.sets[k] = !state.sets[k];
+  if (state.sets[k]) {
+    state.totalSets++;
+    // Start rest timer — show next exercise or "última serie"
+    const nextEx = EXERCISES[ex + 1] ? EXERCISES[ex + 1].name : (set + 1 < EXERCISES[ex].sets ? EXERCISES[ex].name : '¡Fin del entrenamiento!');
+    startTimer(nextEx);
+  } else {
+    state.totalSets = Math.max(0, state.totalSets - 1);
+    skipTimer();
+  }
+  save();
+  renderExercises();
+  renderProgress();
+  renderStats();
+}
+ 
+function finishSession() {
+  const sk = `${state.week}_${state.activeDay}`;
+  if (!state.completedSessions.includes(sk)) {
+    state.completedSessions.push(sk);
+    save();
+  }
+  skipTimer();
+  openStretch();
+}
+ 
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+ 
+function resetAll() {
+  if (confirm("¿Seguro que quieres borrar todo el progreso?")) {
+    state = { week: 1, activeDay: 0, sets: {}, completedSessions: [], totalSets: 0 };
+    save();
+    render();
+  }
+}
+ 
+// ── EXERCISE GUIDE DATA ──────────────────────────────────
+const GUIDES = [
+  {
+    name: "Superman",
+    muscle: "Erectores espinales · Lumbar · Glúteos",
+    img: "https://www.bodiapp.com/content/dam/exercise-library/superman.jpg",
+    anchor: null,
+    steps: [
+      "Túmbate boca abajo en el suelo, brazos estirados al frente y piernas juntas.",
+      "Al exhalar, levanta simultáneamente brazos, pecho y piernas del suelo.",
+      "Aprieta glúteos y zona lumbar durante la subida.",
+      "Mantén la posición 2-3 segundos arriba.",
+      "Baja lentamente sin desplomarte."
+    ],
+    tip: "<strong>Clave postura:</strong> No fuerces el cuello — la mirada va al suelo. Fortalece toda la cadena posterior y combate la espalda plana."
+  },
+  {
+    name: "Bird-Dog",
+    muscle: "Estabilizadores profundos · Lumbar · Glúteos",
+    img: "https://www.spine-health.com/sites/default/files/styles/article_full_width/public/2018-01/bird-dog-exercise.jpg",
+    anchor: null,
+    steps: [
+      "A cuatro patas: manos bajo hombros, rodillas bajo caderas. Espalda recta.",
+      "Extiende el brazo derecho al frente y la pierna izquierda atrás al mismo tiempo.",
+      "Mantén la cadera nivelada — no la gires.",
+      "Aguanta 2-3 segundos, vuelve al centro con control.",
+      "Alterna de lado."
+    ],
+    tip: "<strong>Clave postura:</strong> Entrena el control motor de la columna. Si te tambaleas mucho, empieza solo extendiendo la pierna sin el brazo."
+  },
+  {
+    name: "Face Pull con banda",
+    muscle: "Trapecio medio/bajo · Romboides · Manguito rotador",
+    img: "https://www.lipsticklifters.com/wp-content/uploads/2021/01/band-face-pull.jpg",
+    anchor: {
+      img: "https://www.resistancebandsguide.com/wp-content/uploads/2019/08/door-anchor-top.jpg",
+      text: "Pasa la banda circular por encima de la puerta (en lo alto) y ciérrala. Agarra cada lado del loop con una mano. La puerta debe abrirse hacia ti para mayor seguridad."
+    },
+    steps: [
+      "Ancla la banda en la parte alta de una puerta cerrada.",
+      "Agarra cada lado del loop, da un paso atrás para crear tensión.",
+      "Tira hacia tu cara llevando los codos hacia atrás y arriba.",
+      "Al llegar, abre los brazos en forma de 'W' apretando los omóplatos.",
+      "Vuelve lento — no dejes que los hombros caigan hacia adelante."
+    ],
+    tip: "<strong>Clave postura:</strong> Los codos deben quedar más altos que las muñecas al final. La apertura en 'W' es donde ocurre el trabajo real. El ejercicio más importante para corregir hombros caídos."
+  },
+  {
+    name: "Remo con banda",
+    muscle: "Dorsal ancho · Romboides · Bíceps",
+    img: "https://www.researchgate.net/profile/Brad-Schoenfeld/publication/312207100/figure/fig2/AS:449140677668864@1484090548002/Resistance-band-bent-over-row.jpg",
+    anchor: {
+      img: "https://www.inspireusafoundation.org/wp-content/uploads/2022/08/resistance-band-bent-over-row.gif",
+      text: "Pisa la banda con ambos pies (sepáralos a la anchura de caderas). Mete las manos dentro del loop por la parte superior. Sin ancla en puerta."
+    },
+    steps: [
+      "Pisa la banda con ambos pies, agarra el loop por arriba con ambas manos.",
+      "Inclínate ~45° hacia adelante, espalda recta, rodillas ligeramente dobladas.",
+      "Tira de la banda hacia las caderas llevando los codos pegados al cuerpo.",
+      "Aprieta los omóplatos al final del recorrido y mantén 1 segundo.",
+      "Baja lento hasta estirar los brazos completamente."
+    ],
+    tip: "<strong>Clave postura:</strong> No te incorpores para ayudarte — solo trabajan brazos y espalda. Cuanto más separes los pies sobre la banda, más tensión."
+  },
+  {
+    name: "Pull-apart con banda",
+    muscle: "Romboides · Trapecio medio · Deltoides posterior",
+    img: "https://www.inspireusafoundation.org/wp-content/uploads/2022/04/band-pull-apart.gif",
+    anchor: null,
+    steps: [
+      "De pie, sostén el loop con ambas manos separadas a la anchura de hombros, a la altura del pecho.",
+      "Mantén los brazos casi rectos (ligera flexión de codo).",
+      "Separa los brazos hacia los lados hasta que la banda toque el pecho.",
+      "Aprieta fuerte los omóplatos al final del movimiento.",
+      "Vuelve lento a la posición inicial sin perder tensión en la banda."
+    ],
+    tip: "<strong>Clave postura:</strong> Combate directamente los hombros encorvados del escritorio y el móvil. Empieza con manos muy separadas (menos tensión) e ir juntándolas según progresas."
+  },
+  {
+    name: "Pulldown con banda",
+    muscle: "Dorsal ancho · Teres mayor · Bíceps",
+    img: "https://rehabherophysio.com/wp-content/uploads/2023/01/banded-lat-pulldown.jpg",
+    anchor: {
+      img: "https://www.resistancebandsguide.com/wp-content/uploads/2019/08/door-anchor-top.jpg",
+      text: "Igual que el Face Pull: pasa la banda circular por encima de la puerta en lo alto y ciérrala. Arrodíllate frente a la puerta, mete las manos dentro del loop."
+    },
+    steps: [
+      "Ancla la banda en la parte alta de la puerta cerrada.",
+      "Arrodíllate o siéntate frente a ella. Mete las manos dentro del loop.",
+      "Con el pecho ligeramente elevado, tira hacia abajo llevando los codos a las costillas.",
+      "Aprieta el dorsal abajo — imagina que metes los codos en los bolsillos.",
+      "Sube lento controlando la tensión de la banda."
+    ],
+    tip: "<strong>Clave postura:</strong> No uses el peso del cuerpo para tirar. Si te echas hacia atrás, la banda tiene poca resistencia — busca posición más alejada de la puerta."
+  },
+  {
+    name: "Puente con pausa",
+    muscle: "Lumbar baja · Glúteos · Isquiotibiales",
+    img: "https://www.bodybuildingwizard.com/wp-content/uploads/2014/11/glute-bridge-exercise-2.jpg",
+    anchor: null,
+    steps: [
+      "Boca arriba, rodillas dobladas, pies apoyados a la anchura de caderas.",
+      "Aprieta abdomen y glúteos antes de subir.",
+      "Empuja con los pies y sube las caderas formando una línea hombro-cadera-rodilla.",
+      "Aguanta 3 segundos apretando glúteos con fuerza.",
+      "Baja vértebra a vértebra, lentamente."
+    ],
+    tip: "<strong>Clave postura:</strong> No arquees la lumbar al subir. La pausa activa es lo que fortalece la zona baja y estabiliza la pelvis, corrigiendo la anteversión pélvica."
+  }
+];
+ 
+function openGuide(index) {
+  const g = GUIDES[index];
+  let html = `
+    <div class="guide-title">${g.name}</div>
+    <div class="guide-muscle">${g.muscle}</div>
+    <img class="guide-img" src="${g.img}" alt="${g.name}" onerror="this.style.display='none'">
+  `;
+  if (g.anchor) {
+    html += `
+      <div class="guide-anchor-box">
+        <div class="guide-anchor-label">📌 Cómo anclar la banda circular</div>
+        <img class="guide-anchor-img" src="${g.anchor.img}" alt="ancla" onerror="this.style.display='none'">
+        <div class="guide-anchor-text">${g.anchor.text}</div>
+      </div>
+    `;
+  }
+  html += `<ul class="guide-steps">` + g.steps.map((s,i) =>
+    `<li><span class="step-num">${i+1}</span><span>${s}</span></li>`
+  ).join('') + `</ul>`;
+  html += `<div class="guide-tip">${g.tip}</div>`;
+  document.getElementById('guide-content').innerHTML = html;
+  document.getElementById('guide-overlay').classList.add('active');
+  document.getElementById('guide-overlay').scrollTop = 0;
+}
+ 
+function closeGuide() {
+  document.getElementById('guide-overlay').classList.remove('active');
+}
+ 
+// ── STRETCHES ────────────────────────────────────────────
+const STRETCHES = [
+  {
+    name: "Postura del niño",
+    time: "60 seg",
+    muscle: "Lumbar · Dorsales · Caderas",
+    img: "https://www.yogajournal.com/wp-content/uploads/2021/10/childs-pose_Andrew-Clark.jpg",
+    steps: [
+      "Arrodíllate en el suelo, siéntate sobre los talones.",
+      "Estira los brazos hacia adelante y baja el pecho hacia el suelo.",
+      "Deja caer la frente al suelo y relaja los hombros.",
+      "Mantén la posición respirando profundamente durante 60 segundos."
+    ],
+    tip: "<strong>Por qué:</strong> Descomprime toda la columna y estira los dorsales que has trabajado."
+  },
+  {
+    name: "Gato-Vaca",
+    time: "10 reps lentas",
+    muscle: "Columna completa · Erectores",
+    img: "https://images.squarespace-cdn.com/content/v1/5b3f5d1b5cfd793b85ce3fc1/1548272534497-TJRHLBWJ0LKTHTVGR8OP/cat-cow.gif",
+    steps: [
+      "A cuatro patas: manos bajo hombros, rodillas bajo caderas.",
+      "VACA: inhala, hunde la barriga, sube la cabeza y el cóccix hacia arriba.",
+      "GATO: exhala, redondea la espalda hacia el techo, mete la barbilla al pecho.",
+      "Alterna lentamente entre las dos posiciones, coordinando con la respiración."
+    ],
+    tip: "<strong>Por qué:</strong> Moviliza toda la columna vertebral y alivia la tensión acumulada en los erectores."
+  },
+  {
+    name: "Hilo de aguja",
+    time: "45 seg cada lado",
+    muscle: "Dorsal · Trapecio · Columna torácica",
+    img: "https://www.spineandposturehealthcenter.com/wp-content/uploads/2021/03/thread-the-needle.jpg",
+    steps: [
+      "A cuatro patas, manos bajo hombros y rodillas bajo caderas.",
+      "Desliza el brazo derecho por el suelo hacia la izquierda, por debajo del cuerpo.",
+      "El hombro derecho y la oreja derecha descansan en el suelo.",
+      "Mantén la cadera elevada y relajada. Aguanta 45 segundos.",
+      "Cambia de lado."
+    ],
+    tip: "<strong>Por qué:</strong> Estira en profundidad la columna torácica y el dorsal, mejorando la rotación de la espalda alta."
+  },
+  {
+    name: "Torsión supina",
+    time: "45 seg cada lado",
+    muscle: "Lumbar · Glúteos · Columna",
+    img: "https://www.verywellfit.com/thmb/TjQv2TuNxZ6H5U5nC4U_jYBvWwY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Supine-Spinal-Twist-a-5c82f7a846e0fb000174a9ea.jpg",
+    steps: [
+      "Tumbado boca arriba, dobla la rodilla derecha hacia el pecho.",
+      "Con la mano izquierda, lleva la rodilla doblada hacia el lado izquierdo del suelo.",
+      "Extiende el brazo derecho hacia el lado, mira hacia la derecha.",
+      "Los hombros permanecen pegados al suelo. Aguanta 45 segundos.",
+      "Cambia de lado."
+    ],
+    tip: "<strong>Por qué:</strong> Alivia la tensión lumbar y mejora la movilidad rotatoria de la columna, clave para una buena postura."
+  },
+  {
+    name: "Estiramiento de cobra",
+    time: "30 seg · 3 veces",
+    muscle: "Abdominales · Columna lumbar",
+    img: "https://www.spineandposturehealthcenter.com/wp-content/uploads/2020/09/cobra-pose.jpg",
+    steps: [
+      "Boca abajo, manos apoyadas bajo los hombros, codos pegados al cuerpo.",
+      "Empuja con las manos para elevar el pecho del suelo.",
+      "Mantén las caderas apoyadas en el suelo.",
+      "Sube hasta donde puedas sin dolor, aguanta 30 segundos.",
+      "Baja y repite 3 veces."
+    ],
+    tip: "<strong>Por qué:</strong> Contrarresta la flexión continua de la columna y estira los músculos abdominales, mejorando la extensión lumbar."
+  },
+  {
+    name: "Estiramiento de pecho en puerta",
+    time: "45 seg · 2 veces",
+    muscle: "Pectoral · Hombros anteriores",
+    img: "https://www.verywellfit.com/thmb/vHm28RU7XZ8ZJ7dPQVSFExjk6mw=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/doorway-chest-stretch-56a2bab35f9b58b7d0cce74e.jpg",
+    steps: [
+      "De pie en el marco de una puerta, apoya los antebrazos en el marco.",
+      "Los codos a la altura de los hombros, formando un ángulo de 90°.",
+      "Da un paso adelante con un pie y deja caer suavemente el pecho hacia adelante.",
+      "Siente el estiramiento en el pecho y la parte anterior del hombro.",
+      "Aguanta 45 segundos. Repite 2 veces."
+    ],
+    tip: "<strong>Por qué:</strong> Esencial para la postura — el pecho acortado es la principal causa de hombros caídos hacia adelante. Este estiramiento lo contrarresta directamente."
+  }
+];
+ 
+let stretchDone = new Array(STRETCHES.length).fill(false);
+let stretchDetailOpen = new Array(STRETCHES.length).fill(false);
+ 
+function openStretch() {
+  stretchDone = new Array(STRETCHES.length).fill(false);
+  stretchDetailOpen = new Array(STRETCHES.length).fill(false);
+  renderStretchList();
+  document.getElementById('stretch-overlay').classList.add('active');
+  document.getElementById('stretch-overlay').scrollTop = 0;
+}
+ 
+function closeStretch() {
+  document.getElementById('stretch-overlay').classList.remove('active');
+  showToast("🎉 ¡Sesión completada!");
+  renderDays();
+  renderStats();
+}
+ 
+function toggleStretch(i) {
+  stretchDone[i] = !stretchDone[i];
+  renderStretchList();
+}
+ 
+function toggleStretchDetail(i) {
+  stretchDetailOpen[i] = !stretchDetailOpen[i];
+  renderStretchList();
+}
+ 
+function renderStretchList() {
+  const done = stretchDone.filter(Boolean).length;
+  const pct = Math.round((done / STRETCHES.length) * 100);
+  document.getElementById('stretch-done-label').textContent = `${done} de ${STRETCHES.length} completados`;
+  document.getElementById('stretch-pct').textContent = `${pct}%`;
+  document.getElementById('stretch-progress-fill').style.width = `${pct}%`;
+  document.getElementById('stretch-finish-btn').disabled = done < STRETCHES.length;
+ 
+  document.getElementById('stretch-list').innerHTML = STRETCHES.map((s, i) => {
+    const checked = stretchDone[i];
+    const open = stretchDetailOpen[i];
+    return `
+      <div class="stretch-card ${checked ? 'checked' : ''}">
+        <div class="stretch-card-top" onclick="toggleStretch(${i})">
+          <div class="stretch-card-left">
+            <div class="stretch-check">✓</div>
+            <div class="stretch-card-info">
+              <div class="stretch-name">${s.name}</div>
+              <div class="stretch-meta">
+                <span class="stretch-time">⏱ ${s.time}</span>
+                <span>${s.muscle}</span>
+              </div>
+            </div>
+          </div>
+          <button class="stretch-info-btn" onclick="event.stopPropagation(); toggleStretchDetail(${i})">${open ? '▲' : '?'}</button>
+        </div>
+        <div class="stretch-detail ${open ? 'open' : ''}">
+          <img src="${s.img}" alt="${s.name}" onerror="this.style.display='none'">
+          <ul class="stretch-detail-steps">
+            ${s.steps.map((step, si) => `
+              <li>
+                <span class="stretch-step-num">${si+1}</span>
+                <span>${step}</span>
+              </li>`).join('')}
+          </ul>
+          <div class="stretch-tip">${s.tip}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+ 
+// ── RENDER ───────────────────────────────────────────────
+function renderDays() {
+  const grid = document.getElementById('days-grid');
+  grid.innerHTML = DAYS.map((d, i) => {
+    const sk = `${state.week}_${i}`;
+    const done = state.completedSessions.includes(sk);
+    const active = state.activeDay === i;
+    return `<button class="day-btn ${active ? 'active' : ''} ${done ? 'completed' : ''}" onclick="selectDay(${i})">
+      ${d}
+      <span class="check">${done ? '✓ Listo' : active ? '▶ Activo' : ''}</span>
+    </button>`;
+  }).join('');
+}
+ 
+function renderExercises() {
+  const list = document.getElementById('exercise-list');
+  document.getElementById('session-title').textContent = DAYS[state.activeDay];
+  list.innerHTML = EXERCISES.map((ex, ei) => {
+    const sets = Array.from({length: ex.sets}, (_, si) => {
+      const done = !!state.sets[key(state.week, state.activeDay, ei, si)];
+      return `<div class="set-item ${done ? 'done' : ''}" onclick="toggleSet(${ei},${si})">
+        <div class="set-label">Serie ${si + 1}</div>
+        <div class="set-reps">${ex.reps}</div>
+        <div class="set-done-icon">✓</div>
+      </div>`;
+    }).join('');
+    return `<div class="exercise-card">
+      <div class="exercise-top-row">
+        <div class="exercise-name">${ex.name} <span class="muscle-tag">${ex.muscle}</span></div>
+        <button class="info-btn" onclick="openGuide(${ei})">?</button>
+      </div>
+      <div class="sets-row">${sets}</div>
+    </div>`;
+  }).join('');
+}
+ 
+function renderProgress() {
+  let done = 0;
+  EXERCISES.forEach((ex, ei) => {
+    for (let si = 0; si < ex.sets; si++) {
+      if (state.sets[key(state.week, state.activeDay, ei, si)]) done++;
+    }
+  });
+  document.getElementById('progress-text').textContent = `${done} / ${TOTAL_SETS} series`;
+  document.getElementById('progress-fill').style.width = `${(done / TOTAL_SETS) * 100}%`;
+}
+ 
+function renderStats() {
+  document.getElementById('stat-sessions').textContent = state.completedSessions.length;
+  document.getElementById('stat-sets').textContent = state.totalSets;
+  const weeks = new Set(state.completedSessions.map(s => s.split('_')[0])).size;
+  document.getElementById('stat-weeks').textContent = weeks;
+}
+ 
+function render() {
+  document.getElementById('week-label').textContent = `SEMANA ${state.week}`;
+  renderDays();
+  renderExercises();
+  renderProgress();
+  renderStats();
+}
+ 
+render();
+</script>
+</body>
+</html>
