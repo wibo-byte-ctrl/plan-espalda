@@ -915,7 +915,28 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ── TIMER ──────────────────────────────────────────────
+// ── IOS AUDIO UNLOCK ───────────────────────────────────
+let audioCtx = null;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+document.addEventListener('touchstart', function unlockAudio() {
+  const ctx = getAudioContext();
+  const buf = ctx.createBuffer(1, 1, 22050);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.start(0);
+  document.removeEventListener('touchstart', unlockAudio);
+}, { once: true });
 const TIMER_DURATION = 60;
 const CIRCUMFERENCE = 2 * Math.PI * 82; // 515.2
 let timerInterval = null;
@@ -924,7 +945,7 @@ let timerTotal = TIMER_DURATION;
 
 function playBeep(long = false) {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -942,7 +963,7 @@ function playBeep(long = false) {
 
 function playWhistle() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
     const times = [0, 0.22, 0.44];
     times.forEach(offset => {
       const osc = ctx.createOscillator();
