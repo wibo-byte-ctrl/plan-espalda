@@ -830,6 +830,32 @@
   }
 
   .timer-add-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .add-extra-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-bottom: 28px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    padding: 10px;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .add-extra-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .day-btn.extra { border-color: rgba(71,255,184,0.3); color: var(--muted); font-size: 0.85rem; }
+  .day-btn.extra.active { border-color: var(--accent2); color: var(--accent2); background: rgba(71,255,184,0.08); }
+  .day-btn.extra.completed { border-color: var(--accent2); color: var(--accent2); }
+  .day-btn.extra .extra-label { font-size: 0.6rem; display: block; color: var(--accent2); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
+  .day-btn .remove-extra { font-size: 0.65rem; color: #ff4747; display: block; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -846,6 +872,7 @@
 </div>
 
 <div class="days-grid" id="days-grid"></div>
+<button class="add-extra-btn" onclick="addExtraSession()">➕ Añadir sesión extra</button>
 
 <div class="session-panel">
   <div class="session-header">
@@ -1064,9 +1091,11 @@ let state = JSON.parse(localStorage.getItem('espalda_state') || 'null') || {
   sets: {},
   boosts: {},
   completedSessions: [],
+  extraSessions: {},
   totalSets: 0
 };
 if (!state.boosts) state.boosts = {};
+if (!state.extraSessions) state.extraSessions = {};
 
 function save() { localStorage.setItem('espalda_state', JSON.stringify(state)); }
 
@@ -1138,6 +1167,47 @@ function changeWeek(d) {
   render();
 }
 
+const EXTRA_DAY_NAMES = ["MARTES", "JUEVES", "SÁBADO", "DOMINGO"];
+
+function undoSession(sk) {
+  state.completedSessions = state.completedSessions.filter(s => s !== sk);
+  save();
+  renderDays();
+  renderStats();
+  showToast('↩ Sesión desmarcada');
+}
+
+function addExtraSession() {
+  const wk = state.week;
+  if (!state.extraSessions[wk]) state.extraSessions[wk] = [];
+  if (state.extraSessions[wk].length >= 4) {
+    showToast('Máximo 4 sesiones extra por semana');
+    return;
+  }
+  const idx = state.extraSessions[wk].length;
+  state.extraSessions[wk].push({ name: EXTRA_DAY_NAMES[idx] });
+  // Seleccionar el nuevo día extra
+  state.activeDay = DAYS.length + idx;
+  save();
+  renderDays();
+  renderExercises();
+  renderProgress();
+}
+
+function removeExtraSession(idx) {
+  const wk = state.week;
+  state.extraSessions[wk].splice(idx, 1);
+  if (state.activeDay >= DAYS.length) state.activeDay = 0;
+  save();
+  renderDays();
+  renderExercises();
+  renderProgress();
+}
+
+function keyForDay(week, dayIdx, ex, set) {
+  return `${week}_${dayIdx}_${ex}_${set}`;
+}
+
 function selectDay(d) {
   state.activeDay = d;
   save();
@@ -1171,7 +1241,6 @@ function finishSession() {
   skipTimer();
   openStretch();
 }
-
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1498,15 +1567,33 @@ function renderStretchList() {
 function renderDays() {
   const grid = document.getElementById('days-grid');
   const weekDone = isWeekComplete(state.week);
-  grid.innerHTML = DAYS.map((d, i) => {
+  const extras = state.extraSessions[state.week] || [];
+
+  const fixedDays = DAYS.map((d, i) => {
     const sk = `${state.week}_${i}`;
     const done = state.completedSessions.includes(sk);
     const active = state.activeDay === i;
     return `<button class="day-btn ${active ? 'active' : ''} ${done ? 'completed' : ''}" onclick="selectDay(${i})">
       ${d}
       <span class="check">${done ? '✓ Listo' : active ? '▶ Activo' : ''}</span>
+      ${done ? `<span class="remove-extra" onclick="event.stopPropagation();undoSession('${sk}')">↩ deshacer</span>` : ''}
     </button>`;
   }).join('');
+
+  const extraDays = extras.map((ex, i) => {
+    const dayIdx = DAYS.length + i;
+    const sk = `${state.week}_${dayIdx}`;
+    const done = state.completedSessions.includes(sk);
+    const active = state.activeDay === dayIdx;
+    return `<button class="day-btn extra ${active ? 'active' : ''} ${done ? 'completed' : ''}" onclick="selectDay(${dayIdx})">
+      <span class="extra-label">extra</span>
+      ${ex.name}
+      <span class="check">${done ? '✓ Listo' : active ? '▶ Activo' : ''}</span>
+      ${done ? `<span class="remove-extra" onclick="event.stopPropagation();undoSession('${sk}')">↩ deshacer</span>` : `<span class="remove-extra" onclick="event.stopPropagation();removeExtraSession(${i})">✕ quitar</span>`}
+    </button>`;
+  }).join('');
+
+  grid.innerHTML = fixedDays + extraDays;
 
   // Banner semana completa
   let banner = document.getElementById('week-complete-banner');
@@ -1569,7 +1656,8 @@ function renderProgress() {
 }
 
 function isWeekComplete(week) {
-  return DAYS.every((_, i) => state.completedSessions.includes(`${week}_${i}`));
+  const sessionsThisWeek = state.completedSessions.filter(s => s.startsWith(`${week}_`));
+  return sessionsThisWeek.length >= 3;
 }
 
 function renderStats() {
