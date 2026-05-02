@@ -236,6 +236,23 @@
   .set-item.done .set-done-icon { display: block; }
   .set-item.done .set-reps { display: none; }
 
+  .set-wrapper { flex: 1; min-width: 70px; display: flex; flex-direction: column; gap: 5px; }
+
+  .boost-btn {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 0.68rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    width: 100%;
+  }
+  .boost-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .boost-btn.has-boost { border-color: var(--accent); border-style: solid; color: var(--accent); font-weight: 600; }
+
   /* GUIDE MODAL */
   .guide-overlay {
     position: fixed;
@@ -1045,13 +1062,75 @@ let state = JSON.parse(localStorage.getItem('espalda_state') || 'null') || {
   week: 1,
   activeDay: 0,
   sets: {},
+  boosts: {},
   completedSessions: [],
   totalSets: 0
 };
+if (!state.boosts) state.boosts = {};
 
 function save() { localStorage.setItem('espalda_state', JSON.stringify(state)); }
 
 function key(week, day, ex, set) { return `${week}_${day}_${ex}_${set}`; }
+
+function boostKey(week, day, ex, set) { return `b_${week}_${day}_${ex}_${set}`; }
+
+function openBoost(ei, si) {
+  const inputId = `boost-input-${ei}-${si}`;
+  const existing = document.getElementById(inputId);
+  if (existing) {
+    existing.parentElement.remove();
+    return;
+  }
+  const bk = boostKey(state.week, state.activeDay, ei, si);
+  const current = state.boosts[bk] || '';
+  const wrapper = document.getElementById(`boost-wrap-${ei}-${si}`);
+  const inputBox = document.createElement('div');
+  inputBox.style.cssText = 'display:flex;gap:6px;margin-top:4px;';
+  inputBox.innerHTML = `
+    <input id="${inputId}" type="number" min="1" max="999" value="${current}"
+      placeholder="reps"
+      style="flex:1;background:var(--bg);border:1px solid var(--accent);border-radius:6px;
+             padding:4px 8px;color:var(--text);font-size:0.85rem;text-align:center;width:100%;">
+    <button onclick="saveBoost(${ei},${si})"
+      style="background:var(--accent);color:#000;border:none;border-radius:6px;
+             padding:4px 10px;font-weight:600;font-size:0.8rem;cursor:pointer;">✓</button>
+    <button onclick="clearBoost(${ei},${si})"
+      style="background:transparent;border:1px solid var(--border);color:var(--muted);
+             border-radius:6px;padding:4px 8px;font-size:0.8rem;cursor:pointer;">✕</button>
+  `;
+  wrapper.appendChild(inputBox);
+  document.getElementById(inputId).focus();
+}
+
+function saveBoost(ei, si) {
+  const inputId = `boost-input-${ei}-${si}`;
+  const val = parseInt(document.getElementById(inputId)?.value);
+  const bk = boostKey(state.week, state.activeDay, ei, si);
+  if (!isNaN(val) && val > 0) {
+    state.boosts[bk] = val;
+    // Marcar serie como completada si no lo estaba
+    const k = key(state.week, state.activeDay, ei, si);
+    if (!state.sets[k]) {
+      state.sets[k] = true;
+      state.totalSets++;
+      const nextEx = EXERCISES[ei + 1] ? EXERCISES[ei + 1].name : (si + 1 < EXERCISES[ei].sets ? EXERCISES[ei].name : '¡Fin del entrenamiento!');
+      startTimer(nextEx);
+    }
+  } else {
+    delete state.boosts[bk];
+  }
+  save();
+  renderExercises();
+  renderProgress();
+  renderStats();
+}
+
+function clearBoost(ei, si) {
+  const bk = boostKey(state.week, state.activeDay, ei, si);
+  delete state.boosts[bk];
+  save();
+  renderExercises();
+}
 
 function changeWeek(d) {
   state.week = Math.max(1, Math.min(12, state.week + d));
@@ -1423,10 +1502,19 @@ function renderExercises() {
   list.innerHTML = EXERCISES.map((ex, ei) => {
     const sets = Array.from({length: ex.sets}, (_, si) => {
       const done = !!state.sets[key(state.week, state.activeDay, ei, si)];
-      return `<div class="set-item ${done ? 'done' : ''}" onclick="toggleSet(${ei},${si})">
-        <div class="set-label">Serie ${si + 1}</div>
-        <div class="set-reps">${ex.reps}</div>
-        <div class="set-done-icon">✓</div>
+      const bk = boostKey(state.week, state.activeDay, ei, si);
+      const boost = state.boosts[bk];
+      return `<div class="set-wrapper">
+        <div class="set-item ${done ? 'done' : ''}" onclick="toggleSet(${ei},${si})">
+          <div class="set-label">Serie ${si + 1}</div>
+          <div class="set-reps">${ex.reps}</div>
+          <div class="set-done-icon">✓</div>
+        </div>
+        <div id="boost-wrap-${ei}-${si}">
+          <button class="boost-btn ${boost ? 'has-boost' : ''}" onclick="openBoost(${ei},${si})">
+            ${boost ? `⚡ ${boost} reps` : '⚡ boost'}
+          </button>
+        </div>
       </div>`;
     }).join('');
     return `<div class="exercise-card">
