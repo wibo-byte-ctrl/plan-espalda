@@ -1426,9 +1426,21 @@ function openStretch() {
 
 function closeStretch() {
   document.getElementById('stretch-overlay').classList.remove('active');
-  showToast("🎉 ¡Sesión completada!");
-  renderDays();
-  renderStats();
+  const weekDone = isWeekComplete(state.week);
+  if (weekDone) {
+    setTimeout(() => showToast('🏆 ¡Semana ' + state.week + ' completada!'), 300);
+    // Avanzar automáticamente a la semana siguiente
+    setTimeout(() => {
+      state.week++;
+      state.activeDay = 0;
+      save();
+      render();
+    }, 2000);
+  } else {
+    showToast('🎉 ¡Sesión completada!');
+    renderDays();
+    renderStats();
+  }
 }
 
 function toggleStretch(i) {
@@ -1485,6 +1497,7 @@ function renderStretchList() {
 // ── RENDER ───────────────────────────────────────────────
 function renderDays() {
   const grid = document.getElementById('days-grid');
+  const weekDone = isWeekComplete(state.week);
   grid.innerHTML = DAYS.map((d, i) => {
     const sk = `${state.week}_${i}`;
     const done = state.completedSessions.includes(sk);
@@ -1494,6 +1507,23 @@ function renderDays() {
       <span class="check">${done ? '✓ Listo' : active ? '▶ Activo' : ''}</span>
     </button>`;
   }).join('');
+
+  // Banner semana completa
+  let banner = document.getElementById('week-complete-banner');
+  if (weekDone) {
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'week-complete-banner';
+      banner.style.cssText = `text-align:center;padding:10px;margin-bottom:16px;
+        background:rgba(232,255,71,0.08);border:1px solid var(--accent);
+        border-radius:12px;font-family:'Bebas Neue',sans-serif;
+        font-size:1rem;letter-spacing:0.08em;color:var(--accent);`;
+      banner.textContent = '🏆 SEMANA ' + state.week + ' COMPLETADA';
+      grid.parentNode.insertBefore(banner, grid);
+    }
+  } else if (banner) {
+    banner.remove();
+  }
 }
 
 function renderExercises() {
@@ -1538,11 +1568,20 @@ function renderProgress() {
   document.getElementById('progress-fill').style.width = `${(done / TOTAL_SETS) * 100}%`;
 }
 
+function isWeekComplete(week) {
+  return DAYS.every((_, i) => state.completedSessions.includes(`${week}_${i}`));
+}
+
 function renderStats() {
   document.getElementById('stat-sessions').textContent = state.completedSessions.length;
   document.getElementById('stat-sets').textContent = state.totalSets;
-  const weeks = new Set(state.completedSessions.map(s => s.split('_')[0])).size;
-  document.getElementById('stat-weeks').textContent = weeks;
+  // Contar semanas donde los 3 días están completados
+  const maxWeek = Math.max(...state.completedSessions.map(s => parseInt(s.split('_')[0])), 0);
+  let fullWeeks = 0;
+  for (let w = 1; w <= maxWeek; w++) {
+    if (isWeekComplete(w)) fullWeeks++;
+  }
+  document.getElementById('stat-weeks').textContent = fullWeeks;
 }
 
 function render() {
