@@ -16,9 +16,9 @@
     --muted: #666;
     --border: #2e2e2e;
   }
- 
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
   body {
     background: var(--bg);
     color: var(--text);
@@ -26,14 +26,14 @@
     min-height: 100vh;
     padding: 24px 16px 60px;
   }
- 
+
   header {
     text-align: center;
     margin-bottom: 32px;
     padding-bottom: 24px;
     border-bottom: 1px solid var(--border);
   }
- 
+
   header h1 {
     font-family: 'Bebas Neue', sans-serif;
     font-size: clamp(2.5rem, 8vw, 4rem);
@@ -41,7 +41,7 @@
     color: var(--accent);
     line-height: 1;
   }
- 
+
   header p {
     color: var(--muted);
     font-size: 0.85rem;
@@ -49,7 +49,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
- 
+
   .week-selector {
     display: flex;
     align-items: center;
@@ -57,7 +57,7 @@
     gap: 16px;
     margin-bottom: 28px;
   }
- 
+
   .week-selector button {
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -69,9 +69,9 @@
     transition: all 0.15s;
     display: flex; align-items: center; justify-content: center;
   }
- 
+
   .week-selector button:hover { background: var(--accent); color: #000; border-color: var(--accent); }
- 
+
   #week-label {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.4rem;
@@ -80,14 +80,14 @@
     min-width: 120px;
     text-align: center;
   }
- 
+
   .days-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     margin-bottom: 28px;
   }
- 
+
   .day-btn {
     background: var(--surface);
     border: 2px solid var(--border);
@@ -101,19 +101,19 @@
     transition: all 0.15s;
     text-align: center;
   }
- 
+
   .day-btn:hover { border-color: var(--accent); color: var(--text); }
   .day-btn.active { border-color: var(--accent); background: rgba(232,255,71,0.08); color: var(--accent); }
   .day-btn.completed { border-color: var(--accent2); background: rgba(71,255,184,0.08); color: var(--accent2); }
   .day-btn .check { font-size: 0.8rem; display: block; }
- 
+
   .session-panel {
     background: var(--surface);
     border-radius: 16px;
     border: 1px solid var(--border);
     overflow: hidden;
   }
- 
+
   .session-header {
     background: var(--surface2);
     padding: 16px 20px;
@@ -122,14 +122,14 @@
     align-items: center;
     border-bottom: 1px solid var(--border);
   }
- 
+
   .session-header h2 {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.3rem;
     letter-spacing: 0.06em;
     color: var(--accent);
   }
- 
+
   .finish-btn {
     background: var(--accent);
     color: #000;
@@ -143,11 +143,11 @@
     letter-spacing: 0.04em;
     transition: opacity 0.15s;
   }
- 
+
   .finish-btn:hover { opacity: 0.85; }
- 
+
   .exercise-list { padding: 12px; }
- 
+
   .exercise-card {
     background: var(--surface2);
     border-radius: 12px;
@@ -155,14 +155,14 @@
     margin-bottom: 10px;
     border: 1px solid var(--border);
   }
- 
+
   .exercise-top-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 12px;
   }
- 
+
   .exercise-name {
     font-weight: 600;
     font-size: 0.95rem;
@@ -171,7 +171,7 @@
     gap: 8px;
     flex-wrap: wrap;
   }
- 
+
   .muscle-tag {
     font-size: 0.68rem;
     background: rgba(232,255,71,0.12);
@@ -181,7 +181,7 @@
     font-weight: 500;
     letter-spacing: 0.04em;
   }
- 
+
   .info-btn {
     background: transparent;
     border: 1px solid var(--border);
@@ -195,13 +195,13 @@
     display: flex; align-items: center; justify-content: center;
   }
   .info-btn:hover { border-color: var(--accent2); color: var(--accent2); }
- 
+
   .sets-row {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
   }
- 
+
   .set-item {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -213,10 +213,10 @@
     min-width: 70px;
     flex: 1;
   }
- 
+
   .set-item:hover { border-color: var(--accent); }
   .set-item.done { border-color: var(--accent2); background: rgba(71,255,184,0.1); }
- 
+
   .set-label {
     font-size: 0.65rem;
     color: var(--muted);
@@ -224,18 +224,18 @@
     letter-spacing: 0.06em;
     margin-bottom: 4px;
   }
- 
+
   .set-reps {
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--text);
     margin-bottom: 4px;
   }
- 
+
   .set-done-icon { font-size: 1rem; display: none; }
   .set-item.done .set-done-icon { display: block; }
   .set-item.done .set-reps { display: none; }
- 
+
   /* GUIDE MODAL */
   .guide-overlay {
     position: fixed;
@@ -251,20 +251,20 @@
     overflow-y: auto;
   }
   .guide-overlay.active { opacity: 1; pointer-events: all; }
- 
+
   .guide-inner {
     padding: 24px 20px 48px;
     max-width: 500px;
     margin: 0 auto;
     width: 100%;
   }
- 
+
   .guide-close {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 16px;
   }
- 
+
   .guide-close button {
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -276,7 +276,7 @@
     transition: all 0.15s;
   }
   .guide-close button:hover { border-color: #ff4747; color: #ff4747; }
- 
+
   .guide-title {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.8rem;
@@ -284,7 +284,7 @@
     color: var(--accent);
     margin-bottom: 4px;
   }
- 
+
   .guide-muscle {
     font-size: 0.75rem;
     color: var(--accent2);
@@ -292,7 +292,7 @@
     text-transform: uppercase;
     margin-bottom: 16px;
   }
- 
+
   .guide-img {
     width: 100%;
     border-radius: 12px;
@@ -302,7 +302,7 @@
     border: 1px solid var(--border);
     background: var(--surface2);
   }
- 
+
   .guide-anchor-box {
     background: rgba(71,255,184,0.07);
     border: 1px solid rgba(71,255,184,0.2);
@@ -310,7 +310,7 @@
     padding: 12px 14px;
     margin-bottom: 16px;
   }
- 
+
   .guide-anchor-label {
     font-size: 0.7rem;
     color: var(--accent2);
@@ -319,7 +319,7 @@
     margin-bottom: 8px;
     font-weight: 600;
   }
- 
+
   .guide-anchor-img {
     width: 100%;
     border-radius: 8px;
@@ -328,18 +328,18 @@
     margin-bottom: 8px;
     border: 1px solid var(--border);
   }
- 
+
   .guide-anchor-text {
     font-size: 0.8rem;
     color: var(--muted);
     line-height: 1.5;
   }
- 
+
   .guide-steps {
     list-style: none;
     margin-bottom: 16px;
   }
- 
+
   .guide-steps li {
     display: flex;
     gap: 12px;
@@ -348,7 +348,7 @@
     line-height: 1.5;
     color: var(--text);
   }
- 
+
   .step-num {
     background: var(--accent);
     color: #000;
@@ -360,7 +360,7 @@
     flex-shrink: 0;
     margin-top: 1px;
   }
- 
+
   .guide-tip {
     background: rgba(232,255,71,0.07);
     border-left: 3px solid var(--accent);
@@ -370,9 +370,9 @@
     color: var(--muted);
     line-height: 1.5;
   }
- 
+
   .guide-tip strong { color: var(--accent); }
- 
+
   /* STRETCHING POPUP */
   .stretch-overlay {
     position: fixed;
@@ -388,21 +388,21 @@
     overflow-y: auto;
   }
   .stretch-overlay.active { opacity: 1; pointer-events: all; }
- 
+
   .stretch-inner {
     padding: 24px 20px 60px;
     max-width: 500px;
     margin: 0 auto;
     width: 100%;
   }
- 
+
   .stretch-header {
     text-align: center;
     margin-bottom: 24px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border);
   }
- 
+
   .stretch-header h2 {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 2rem;
@@ -410,14 +410,14 @@
     color: var(--accent2);
     margin-bottom: 4px;
   }
- 
+
   .stretch-header p {
     font-size: 0.8rem;
     color: var(--muted);
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
- 
+
   .stretch-progress-row {
     display: flex;
     justify-content: space-between;
@@ -426,7 +426,7 @@
     font-size: 0.78rem;
     color: var(--muted);
   }
- 
+
   .stretch-progress-bar {
     height: 4px;
     background: var(--border);
@@ -434,14 +434,14 @@
     overflow: hidden;
     margin-bottom: 20px;
   }
- 
+
   .stretch-progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--accent2), var(--accent));
     border-radius: 10px;
     transition: width 0.4s ease;
   }
- 
+
   .stretch-card {
     background: var(--surface);
     border-radius: 14px;
@@ -450,9 +450,9 @@
     margin-bottom: 12px;
     transition: border-color 0.2s;
   }
- 
+
   .stretch-card.checked { border-color: var(--accent2); }
- 
+
   .stretch-card-top {
     display: flex;
     align-items: center;
@@ -460,9 +460,9 @@
     padding: 14px 16px;
     cursor: pointer;
   }
- 
+
   .stretch-card-left { display: flex; align-items: center; gap: 12px; }
- 
+
   .stretch-check {
     width: 26px; height: 26px;
     border-radius: 50%;
@@ -473,30 +473,30 @@
     transition: all 0.2s;
     color: transparent;
   }
- 
+
   .stretch-card.checked .stretch-check {
     background: var(--accent2);
     border-color: var(--accent2);
     color: #000;
   }
- 
+
   .stretch-card-info { flex: 1; }
- 
+
   .stretch-name {
     font-weight: 600;
     font-size: 0.92rem;
     margin-bottom: 2px;
   }
- 
+
   .stretch-card.checked .stretch-name { color: var(--accent2); }
- 
+
   .stretch-meta {
     font-size: 0.72rem;
     color: var(--muted);
     display: flex;
     gap: 10px;
   }
- 
+
   .stretch-time {
     background: rgba(71,255,184,0.1);
     color: var(--accent2);
@@ -505,7 +505,7 @@
     font-size: 0.68rem;
     font-weight: 600;
   }
- 
+
   .stretch-info-btn {
     background: transparent;
     border: 1px solid var(--border);
@@ -520,15 +520,15 @@
     margin-left: 8px;
   }
   .stretch-info-btn:hover { border-color: var(--accent2); color: var(--accent2); }
- 
+
   .stretch-detail {
     display: none;
     padding: 0 16px 14px;
     border-top: 1px solid var(--border);
   }
- 
+
   .stretch-detail.open { display: block; }
- 
+
   .stretch-detail img {
     width: 100%;
     border-radius: 10px;
@@ -537,12 +537,12 @@
     margin: 12px 0 10px;
     border: 1px solid var(--border);
   }
- 
+
   .stretch-detail-steps {
     list-style: none;
     margin-bottom: 10px;
   }
- 
+
   .stretch-detail-steps li {
     display: flex;
     gap: 10px;
@@ -551,7 +551,7 @@
     line-height: 1.5;
     color: var(--text);
   }
- 
+
   .stretch-step-num {
     background: var(--accent2);
     color: #000;
@@ -563,7 +563,7 @@
     flex-shrink: 0;
     margin-top: 1px;
   }
- 
+
   .stretch-tip {
     background: rgba(71,255,184,0.07);
     border-left: 3px solid var(--accent2);
@@ -573,9 +573,9 @@
     color: var(--muted);
     line-height: 1.5;
   }
- 
+
   .stretch-tip strong { color: var(--accent2); }
- 
+
   .stretch-finish-btn {
     display: block;
     width: 100%;
@@ -591,15 +591,15 @@
     cursor: pointer;
     transition: opacity 0.15s;
   }
- 
+
   .stretch-finish-btn:hover { opacity: 0.85; }
   .stretch-finish-btn:disabled { opacity: 0.3; cursor: not-allowed; }
- 
+
   .progress-bar-wrap {
     padding: 16px 20px;
     border-top: 1px solid var(--border);
   }
- 
+
   .progress-label {
     display: flex;
     justify-content: space-between;
@@ -608,14 +608,14 @@
     margin-bottom: 8px;
     letter-spacing: 0.04em;
   }
- 
+
   .progress-bar {
     height: 6px;
     background: var(--border);
     border-radius: 10px;
     overflow: hidden;
   }
- 
+
   .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--accent2), var(--accent));
@@ -623,7 +623,7 @@
     transition: width 0.4s ease;
     width: 0%;
   }
- 
+
   .stats-section {
     margin-top: 28px;
     padding: 20px;
@@ -631,7 +631,7 @@
     border-radius: 16px;
     border: 1px solid var(--border);
   }
- 
+
   .stats-title {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1.2rem;
@@ -639,13 +639,13 @@
     color: var(--accent2);
     margin-bottom: 16px;
   }
- 
+
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
   }
- 
+
   .stat-box {
     background: var(--surface2);
     border-radius: 10px;
@@ -653,14 +653,14 @@
     text-align: center;
     border: 1px solid var(--border);
   }
- 
+
   .stat-num {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 2rem;
     color: var(--accent);
     line-height: 1;
   }
- 
+
   .stat-desc {
     font-size: 0.7rem;
     color: var(--muted);
@@ -668,7 +668,7 @@
     letter-spacing: 0.06em;
     margin-top: 4px;
   }
- 
+
   .reset-btn {
     display: block;
     width: 100%;
@@ -684,9 +684,9 @@
     letter-spacing: 0.04em;
     transition: all 0.15s;
   }
- 
+
   .reset-btn:hover { border-color: #ff4747; color: #ff4747; }
- 
+
   .toast {
     position: fixed;
     bottom: 24px;
@@ -702,9 +702,9 @@
     z-index: 999;
     white-space: nowrap;
   }
- 
+
   .toast.show { transform: translateX(-50%) translateY(0); }
- 
+
   /* TIMER OVERLAY */
   .timer-overlay {
     position: fixed;
@@ -720,12 +720,12 @@
     pointer-events: none;
     transition: opacity 0.3s;
   }
- 
+
   .timer-overlay.active {
     opacity: 1;
     pointer-events: all;
   }
- 
+
   .timer-label {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 1rem;
@@ -734,32 +734,32 @@
     margin-bottom: 16px;
     text-transform: uppercase;
   }
- 
+
   .timer-ring {
     position: relative;
     width: 180px;
     height: 180px;
     margin-bottom: 24px;
   }
- 
+
   .timer-ring svg {
     transform: rotate(-90deg);
     width: 180px;
     height: 180px;
   }
- 
+
   .timer-ring svg circle {
     fill: none;
     stroke-width: 6;
   }
- 
+
   .timer-ring .bg-circle { stroke: var(--border); }
   .timer-ring .fg-circle {
     stroke: var(--accent2);
     stroke-linecap: round;
     transition: stroke-dashoffset 1s linear;
   }
- 
+
   .timer-number {
     position: absolute;
     top: 50%;
@@ -770,9 +770,9 @@
     color: var(--text);
     line-height: 1;
   }
- 
+
   .timer-number.urgent { color: #ff4747; }
- 
+
   .timer-exercise-name {
     font-size: 0.85rem;
     color: var(--muted);
@@ -780,12 +780,12 @@
     text-align: center;
     padding: 0 20px;
   }
- 
+
   .timer-actions {
     display: flex;
     gap: 12px;
   }
- 
+
   .timer-skip-btn {
     background: transparent;
     border: 1px solid var(--border);
@@ -797,9 +797,9 @@
     cursor: pointer;
     transition: all 0.15s;
   }
- 
+
   .timer-skip-btn:hover { border-color: var(--accent); color: var(--accent); }
- 
+
   .timer-add-btn {
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -811,28 +811,28 @@
     cursor: pointer;
     transition: all 0.15s;
   }
- 
+
   .timer-add-btn:hover { border-color: var(--accent2); color: var(--accent2); }
 </style>
 </head>
 <body>
- 
+
 <header>
   <h1>Plan Espalda</h1>
   <p>Seguimiento de entrenamiento · 3 días/semana</p>
 </header>
- 
+
 <div class="week-selector">
   <button onclick="changeWeek(-1)">‹</button>
   <span id="week-label">SEMANA 1</span>
   <button onclick="changeWeek(1)">›</button>
 </div>
- 
+
 <div class="days-grid" id="days-grid"></div>
- 
+
 <div class="session-panel">
   <div class="session-header">
-    <h2 id="session-title">DÍA A</h2>
+    <h2 id="session-title">LUNES</h2>
     <button class="finish-btn" onclick="finishSession()">✓ Terminar sesión</button>
   </div>
   <div class="exercise-list" id="exercise-list"></div>
@@ -844,7 +844,7 @@
     <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
   </div>
 </div>
- 
+
 <div class="stats-section">
   <div class="stats-title">📊 Mis estadísticas</div>
   <div class="stats-grid">
@@ -862,7 +862,7 @@
     </div>
   </div>
 </div>
- 
+
 <button class="reset-btn" onclick="resetAll()">🗑 Reiniciar todo el progreso</button>
 <!-- STRETCHING POPUP -->
 <div class="stretch-overlay" id="stretch-overlay">
@@ -884,7 +884,7 @@
     </button>
   </div>
 </div>
- 
+
 <!-- EXERCISE GUIDE MODAL -->
 <div class="guide-overlay" id="guide-overlay">
   <div class="guide-inner">
@@ -892,7 +892,7 @@
     <div id="guide-content"></div>
   </div>
 </div>
- 
+
 <!-- REST TIMER OVERLAY -->
 <div class="timer-overlay" id="timer-overlay">
   <div class="timer-label">⏱ Descanso</div>
@@ -911,9 +911,9 @@
     <button class="timer-skip-btn" onclick="skipTimer()">Saltar ›</button>
   </div>
 </div>
- 
+
 <div class="toast" id="toast"></div>
- 
+
 <script>
 // ── TIMER ──────────────────────────────────────────────
 const TIMER_DURATION = 60;
@@ -921,7 +921,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 82; // 515.2
 let timerInterval = null;
 let timerRemaining = 0;
 let timerTotal = TIMER_DURATION;
- 
+
 function playWhistle() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -942,7 +942,7 @@ function playWhistle() {
     });
   } catch(e) {}
 }
- 
+
 function startTimer(exerciseName) {
   if (timerInterval) clearInterval(timerInterval);
   timerRemaining = TIMER_DURATION;
@@ -950,7 +950,7 @@ function startTimer(exerciseName) {
   document.getElementById('timer-exercise-name').textContent = '↻ Siguiente: ' + exerciseName;
   updateTimerDisplay();
   document.getElementById('timer-overlay').classList.add('active');
- 
+
   timerInterval = setInterval(() => {
     timerRemaining--;
     updateTimerDisplay();
@@ -962,7 +962,7 @@ function startTimer(exerciseName) {
     }
   }, 1000);
 }
- 
+
 function updateTimerDisplay() {
   const el = document.getElementById('timer-number');
   const arc = document.getElementById('timer-arc');
@@ -972,18 +972,18 @@ function updateTimerDisplay() {
   arc.style.strokeDashoffset = CIRCUMFERENCE * (1 - progress);
   arc.style.stroke = timerRemaining <= 10 ? '#ff4747' : 'var(--accent2)';
 }
- 
+
 function skipTimer() {
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   document.getElementById('timer-overlay').classList.remove('active');
 }
- 
+
 function addTime(secs) {
   timerRemaining = Math.min(timerRemaining + secs, 180);
   timerTotal = Math.max(timerTotal, timerRemaining);
   updateTimerDisplay();
 }
- 
+
 // ── APP ─────────────────────────────────────────────────
 const EXERCISES = [
   { name: "Superman", sets: 3, reps: "12-15", muscle: "Lumbar" },
@@ -994,10 +994,10 @@ const EXERCISES = [
   { name: "Pulldown con banda", sets: 3, reps: "12", muscle: "Dorsal ancho" },
   { name: "Puente con pausa", sets: 3, reps: "12", muscle: "Lumbar baja" }
 ];
- 
+
 const TOTAL_SETS = EXERCISES.reduce((s, e) => s + e.sets, 0);
-const DAYS = ["DÍA A", "DÍA B", "DÍA C"];
- 
+const DAYS = ["LUNES", "MIÉRCOLES", "VIERNES"];
+
 let state = JSON.parse(localStorage.getItem('espalda_state') || 'null') || {
   week: 1,
   activeDay: 0,
@@ -1005,23 +1005,23 @@ let state = JSON.parse(localStorage.getItem('espalda_state') || 'null') || {
   completedSessions: [],
   totalSets: 0
 };
- 
+
 function save() { localStorage.setItem('espalda_state', JSON.stringify(state)); }
- 
+
 function key(week, day, ex, set) { return `${week}_${day}_${ex}_${set}`; }
- 
+
 function changeWeek(d) {
   state.week = Math.max(1, Math.min(12, state.week + d));
   save();
   render();
 }
- 
+
 function selectDay(d) {
   state.activeDay = d;
   save();
   render();
 }
- 
+
 function toggleSet(ex, set) {
   const k = key(state.week, state.activeDay, ex, set);
   state.sets[k] = !state.sets[k];
@@ -1039,7 +1039,7 @@ function toggleSet(ex, set) {
   renderProgress();
   renderStats();
 }
- 
+
 function finishSession() {
   const sk = `${state.week}_${state.activeDay}`;
   if (!state.completedSessions.includes(sk)) {
@@ -1049,14 +1049,14 @@ function finishSession() {
   skipTimer();
   openStretch();
 }
- 
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
- 
+
 function resetAll() {
   if (confirm("¿Seguro que quieres borrar todo el progreso?")) {
     state = { week: 1, activeDay: 0, sets: {}, completedSessions: [], totalSets: 0 };
@@ -1064,7 +1064,7 @@ function resetAll() {
     render();
   }
 }
- 
+
 // ── EXERCISE GUIDE DATA ──────────────────────────────────
 const GUIDES = [
   {
@@ -1175,7 +1175,7 @@ const GUIDES = [
     tip: "<strong>Clave postura:</strong> No arquees la lumbar al subir. La pausa activa es lo que fortalece la zona baja y estabiliza la pelvis, corrigiendo la anteversión pélvica."
   }
 ];
- 
+
 function openGuide(index) {
   const g = GUIDES[index];
   let html = `
@@ -1200,11 +1200,11 @@ function openGuide(index) {
   document.getElementById('guide-overlay').classList.add('active');
   document.getElementById('guide-overlay').scrollTop = 0;
 }
- 
+
 function closeGuide() {
   document.getElementById('guide-overlay').classList.remove('active');
 }
- 
+
 // ── STRETCHES ────────────────────────────────────────────
 const STRETCHES = [
   {
@@ -1290,10 +1290,10 @@ const STRETCHES = [
     tip: "<strong>Por qué:</strong> Esencial para la postura — el pecho acortado es la principal causa de hombros caídos hacia adelante. Este estiramiento lo contrarresta directamente."
   }
 ];
- 
+
 let stretchDone = new Array(STRETCHES.length).fill(false);
 let stretchDetailOpen = new Array(STRETCHES.length).fill(false);
- 
+
 function openStretch() {
   stretchDone = new Array(STRETCHES.length).fill(false);
   stretchDetailOpen = new Array(STRETCHES.length).fill(false);
@@ -1301,24 +1301,24 @@ function openStretch() {
   document.getElementById('stretch-overlay').classList.add('active');
   document.getElementById('stretch-overlay').scrollTop = 0;
 }
- 
+
 function closeStretch() {
   document.getElementById('stretch-overlay').classList.remove('active');
   showToast("🎉 ¡Sesión completada!");
   renderDays();
   renderStats();
 }
- 
+
 function toggleStretch(i) {
   stretchDone[i] = !stretchDone[i];
   renderStretchList();
 }
- 
+
 function toggleStretchDetail(i) {
   stretchDetailOpen[i] = !stretchDetailOpen[i];
   renderStretchList();
 }
- 
+
 function renderStretchList() {
   const done = stretchDone.filter(Boolean).length;
   const pct = Math.round((done / STRETCHES.length) * 100);
@@ -1326,7 +1326,7 @@ function renderStretchList() {
   document.getElementById('stretch-pct').textContent = `${pct}%`;
   document.getElementById('stretch-progress-fill').style.width = `${pct}%`;
   document.getElementById('stretch-finish-btn').disabled = done < STRETCHES.length;
- 
+
   document.getElementById('stretch-list').innerHTML = STRETCHES.map((s, i) => {
     const checked = stretchDone[i];
     const open = stretchDetailOpen[i];
@@ -1359,7 +1359,7 @@ function renderStretchList() {
       </div>`;
   }).join('');
 }
- 
+
 // ── RENDER ───────────────────────────────────────────────
 function renderDays() {
   const grid = document.getElementById('days-grid');
@@ -1373,7 +1373,7 @@ function renderDays() {
     </button>`;
   }).join('');
 }
- 
+
 function renderExercises() {
   const list = document.getElementById('exercise-list');
   document.getElementById('session-title').textContent = DAYS[state.activeDay];
@@ -1395,7 +1395,7 @@ function renderExercises() {
     </div>`;
   }).join('');
 }
- 
+
 function renderProgress() {
   let done = 0;
   EXERCISES.forEach((ex, ei) => {
@@ -1406,14 +1406,14 @@ function renderProgress() {
   document.getElementById('progress-text').textContent = `${done} / ${TOTAL_SETS} series`;
   document.getElementById('progress-fill').style.width = `${(done / TOTAL_SETS) * 100}%`;
 }
- 
+
 function renderStats() {
   document.getElementById('stat-sessions').textContent = state.completedSessions.length;
   document.getElementById('stat-sets').textContent = state.totalSets;
   const weeks = new Set(state.completedSessions.map(s => s.split('_')[0])).size;
   document.getElementById('stat-weeks').textContent = weeks;
 }
- 
+
 function render() {
   document.getElementById('week-label').textContent = `SEMANA ${state.week}`;
   renderDays();
@@ -1421,7 +1421,7 @@ function render() {
   renderProgress();
   renderStats();
 }
- 
+
 render();
 </script>
 </body>
