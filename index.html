@@ -922,6 +922,24 @@ let timerInterval = null;
 let timerRemaining = 0;
 let timerTotal = TIMER_DURATION;
 
+function playBeep(long = false) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(long ? 880 : 1200, ctx.currentTime);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.01);
+    const duration = long ? 0.8 : 0.12;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+
 function playWhistle() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -954,11 +972,15 @@ function startTimer(exerciseName) {
   timerInterval = setInterval(() => {
     timerRemaining--;
     updateTimerDisplay();
+    if (timerRemaining > 0 && timerRemaining <= 5) {
+      playBeep(false);
+    }
     if (timerRemaining <= 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      playWhistle();
-      setTimeout(() => document.getElementById('timer-overlay').classList.remove('active'), 800);
+      playBeep(true);
+      setTimeout(() => playWhistle(), 900);
+      setTimeout(() => document.getElementById('timer-overlay').classList.remove('active'), 1800);
     }
   }, 1000);
 }
