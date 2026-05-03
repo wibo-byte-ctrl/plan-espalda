@@ -704,6 +704,71 @@
 
   .reset-btn:hover { border-color: #ff4747; color: #ff4747; }
 
+  .muscle-group { margin-bottom: 20px; }
+  .muscle-group:last-child { margin-bottom: 0; }
+
+  .muscle-name {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent2);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .week-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .week-bar-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    min-width: 22px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .week-bar-track {
+    flex: 1;
+    height: 10px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: visible;
+    position: relative;
+  }
+
+  .week-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    max-width: 100%;
+    position: relative;
+  }
+
+  .week-bar-fill.normal { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .week-bar-fill.boosted { background: linear-gradient(90deg, var(--accent), #ff0); }
+
+  .week-bar-pct {
+    font-size: 0.68rem;
+    font-weight: 600;
+    min-width: 36px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .week-bar-pct.boosted { color: var(--accent); }
+  .week-bar-pct.normal { color: var(--accent2); }
+  .week-bar-pct.empty { color: var(--muted); }
+
+  .muscle-no-data {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
   .toast {
     position: fixed;
     bottom: 24px;
@@ -905,6 +970,11 @@
       <div class="stat-desc">Semanas</div>
     </div>
   </div>
+</div>
+
+<div class="stats-section" id="muscle-progress-section">
+  <div class="stats-title">💪 Progreso por músculo</div>
+  <div id="muscle-progress-content"></div>
 </div>
 
 <button class="reset-btn" onclick="resetAll()">🗑 Reiniciar todo el progreso</button>
@@ -1509,6 +1579,7 @@ function closeStretch() {
     showToast('🎉 ¡Sesión completada!');
     renderDays();
     renderStats();
+    renderMuscleProgress();
   }
 }
 
@@ -1560,6 +1631,94 @@ function renderStretchList() {
           <div class="stretch-tip">${s.tip}</div>
         </div>
       </div>`;
+  }).join('');
+}
+
+// ── MUSCLE PROGRESS ──────────────────────────────────────
+const MUSCLE_GROUPS = [
+  { name: "Lumbar", exercises: [0, 3, 6] },        // Superman, Extensión, Puente
+  { name: "Dorsal", exercises: [2, 3, 5] },         // Remo, Pulldown, (Dorsal ancho)
+  { name: "Romboides", exercises: [2, 4] },          // Face Pull, Pull-apart
+  { name: "Trapecios", exercises: [2] },             // Face Pull
+  { name: "Estabilizadores", exercises: [1] }        // Bird-Dog
+];
+
+// Map exercise index to its numeric target reps (use first number if range)
+function targetReps(exIdx) {
+  const r = EXERCISES[exIdx].reps;
+  return parseInt(r.split('-')[0].replace(/[^0-9]/g, '')) || 10;
+}
+
+function getMuscleDataForWeek(muscleExercises, week) {
+  let totalReps = 0;
+  let hasBoosted = false;
+
+  // El 100% = 3 sesiones completas al objetivo (los 3 días fijos)
+  let maxReps = 0;
+  muscleExercises.forEach(ei => {
+    if (ei >= EXERCISES.length) return;
+    maxReps += EXERCISES[ei].sets * targetReps(ei) * 3;
+  });
+
+  // Sumar reps reales de todos los días completados esa semana
+  const allDayIndices = [];
+  for (let i = 0; i < DAYS.length; i++) allDayIndices.push(i);
+  const extras = state.extraSessions[week] || [];
+  extras.forEach((_, i) => allDayIndices.push(DAYS.length + i));
+
+  allDayIndices.forEach(dayIdx => {
+    const sk = `${week}_${dayIdx}`;
+    if (!state.completedSessions.includes(sk)) return;
+    muscleExercises.forEach(ei => {
+      if (ei >= EXERCISES.length) return;
+      const ex = EXERCISES[ei];
+      const target = targetReps(ei);
+      for (let si = 0; si < ex.sets; si++) {
+        const k = key(week, dayIdx, ei, si);
+        if (state.sets[k]) {
+          const bk = boostKey(week, dayIdx, ei, si);
+          const boost = state.boosts[bk];
+          if (boost) { totalReps += boost; hasBoosted = true; }
+          else totalReps += target;
+        }
+      }
+    });
+  });
+
+  return { totalReps, maxReps, hasBoosted };
+}
+
+function renderMuscleProgress() {
+  const container = document.getElementById('muscle-progress-content');
+  if (!container) return;
+
+  const maxWeek = Math.max(...state.completedSessions.map(s => parseInt(s.split('_')[0])), 0);
+  if (maxWeek === 0) {
+    container.innerHTML = '<p class="muscle-no-data">Completa tu primera sesión para ver el progreso.</p>';
+    return;
+  }
+
+  container.innerHTML = MUSCLE_GROUPS.map(mg => {
+    const bars = [];
+    for (let w = 1; w <= maxWeek; w++) {
+      const { totalReps, maxReps, hasBoosted } = getMuscleDataForWeek(mg.exercises, w);
+      if (maxReps === 0) continue;
+      const pct = Math.round((totalReps / maxReps) * 100);
+      const barWidth = Math.min(pct, 100);
+      const cls = pct > 100 ? 'boosted' : pct > 0 ? 'normal' : 'empty';
+      bars.push(`
+        <div class="week-bar-row">
+          <span class="week-bar-label">S${w}</span>
+          <div class="week-bar-track">
+            <div class="week-bar-fill ${cls}" style="width:${barWidth}%"></div>
+          </div>
+          <span class="week-bar-pct ${cls}">${pct > 0 ? pct + '%' : '-'}${pct > 100 ? ' ⚡' : ''}</span>
+        </div>`);
+    }
+    return `<div class="muscle-group">
+      <div class="muscle-name">${mg.name}</div>
+      ${bars.length ? bars.join('') : '<p class="muscle-no-data">Sin datos aún</p>'}
+    </div>`;
   }).join('');
 }
 
@@ -1678,6 +1837,7 @@ function render() {
   renderExercises();
   renderProgress();
   renderStats();
+  renderMuscleProgress();
 }
 
 render();
