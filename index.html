@@ -769,6 +769,106 @@
     font-style: italic;
   }
 
+  /* MOTIVATION BANNER */
+  .motivation-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .motivation-emoji { font-size: 1.8rem; flex-shrink: 0; }
+  .motivation-text { flex: 1; }
+  .motivation-msg { font-size: 0.88rem; font-weight: 500; color: var(--text); line-height: 1.4; }
+  .motivation-streak { font-size: 0.72rem; color: var(--accent); margin-top: 2px; letter-spacing: 0.04em; }
+
+  /* ACHIEVEMENT POPUP */
+  .achievement-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1300;
+    pointer-events: none;
+    padding: 20px;
+  }
+
+  .achievement-card {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 20px;
+    padding: 28px 24px;
+    text-align: center;
+    max-width: 300px;
+    width: 100%;
+    transform: scale(0.5);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: all;
+    box-shadow: 0 0 40px rgba(232,255,71,0.2);
+  }
+
+  .achievement-card.show { transform: scale(1); opacity: 1; }
+
+  .achievement-icon { font-size: 3rem; margin-bottom: 8px; }
+  .achievement-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .achievement-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .achievement-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 16px; line-height: 1.4; }
+  .achievement-close {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  /* ACHIEVEMENTS SECTION */
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .achievement-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 6px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .achievement-badge.unlocked {
+    border-color: var(--accent);
+    background: rgba(232,255,71,0.06);
+  }
+
+  .achievement-badge .badge-icon { font-size: 1.4rem; margin-bottom: 4px; filter: grayscale(1); opacity: 0.3; }
+  .achievement-badge.unlocked .badge-icon { filter: none; opacity: 1; }
+  .achievement-badge .badge-name { font-size: 0.6rem; color: var(--muted); line-height: 1.3; }
+  .achievement-badge.unlocked .badge-name { color: var(--accent); }
+
   .toast {
     position: fixed;
     bottom: 24px;
@@ -930,6 +1030,14 @@
   <p>Seguimiento de entrenamiento · 3 días/semana</p>
 </header>
 
+<div class="motivation-banner" id="motivation-banner">
+  <div class="motivation-emoji" id="motivation-emoji">💪</div>
+  <div class="motivation-text">
+    <div class="motivation-msg" id="motivation-msg">¡Empieza hoy tu primera semana!</div>
+    <div class="motivation-streak" id="motivation-streak">Racha: 0 semanas</div>
+  </div>
+</div>
+
 <div class="week-selector">
   <button onclick="changeWeek(-1)">‹</button>
   <span id="week-label">SEMANA 1</span>
@@ -975,6 +1083,22 @@
 <div class="stats-section" id="muscle-progress-section">
   <div class="stats-title">💪 Progreso por músculo</div>
   <div id="muscle-progress-content"></div>
+</div>
+
+<div class="stats-section">
+  <div class="stats-title">🏅 Logros</div>
+  <div class="achievements-grid" id="achievements-grid"></div>
+</div>
+
+<!-- ACHIEVEMENT POPUP -->
+<div class="achievement-overlay" id="achievement-overlay" style="display:none">
+  <div class="achievement-card" id="achievement-card">
+    <div class="achievement-icon" id="ach-icon"></div>
+    <div class="achievement-label">🔓 Logro desbloqueado</div>
+    <div class="achievement-name" id="ach-name"></div>
+    <div class="achievement-desc" id="ach-desc"></div>
+    <button class="achievement-close" onclick="closeAchievement()">¡Genial!</button>
+  </div>
 </div>
 
 <button class="reset-btn" onclick="resetAll()">🗑 Reiniciar todo el progreso</button>
@@ -1166,6 +1290,9 @@ let state = JSON.parse(localStorage.getItem('espalda_state') || 'null') || {
 };
 if (!state.boosts) state.boosts = {};
 if (!state.extraSessions) state.extraSessions = {};
+if (!state.achievements) state.achievements = [];
+if (!state.streak) state.streak = 0;
+if (!state.bestStreak) state.bestStreak = 0;
 
 function save() { localStorage.setItem('espalda_state', JSON.stringify(state)); }
 
@@ -1222,6 +1349,7 @@ function saveBoost(ei, si) {
   renderExercises();
   renderProgress();
   renderStats();
+  checkAchievements();
 }
 
 function clearBoost(ei, si) {
@@ -1567,6 +1695,7 @@ function closeStretch() {
   document.getElementById('stretch-overlay').classList.remove('active');
   const weekDone = isWeekComplete(state.week);
   if (weekDone) {
+    checkAchievements();
     setTimeout(() => showToast('🏆 ¡Semana ' + state.week + ' completada!'), 300);
     // Avanzar automáticamente a la semana siguiente
     setTimeout(() => {
@@ -1580,6 +1709,9 @@ function closeStretch() {
     renderDays();
     renderStats();
     renderMuscleProgress();
+    renderMotivation();
+    renderAchievements();
+    checkAchievements();
   }
 }
 
@@ -1632,6 +1764,117 @@ function renderStretchList() {
         </div>
       </div>`;
   }).join('');
+}
+
+// ── ACHIEVEMENTS ─────────────────────────────────────────
+const ACHIEVEMENTS = [
+  { id: 'first_session', icon: '🥇', name: 'Primera sesión', desc: 'Completaste tu primera sesión de entrenamiento.' },
+  { id: 'first_week', icon: '🔥', name: 'Primera semana', desc: 'Completaste tu primera semana de 3 sesiones.' },
+  { id: 'first_boost', icon: '⚡', name: 'Primer boost', desc: 'Superaste las reps objetivo por primera vez.' },
+  { id: 'sets_50', icon: '💪', name: '50 series', desc: 'Acumulaste 50 series completadas en total.' },
+  { id: 'sets_100', icon: '🦾', name: '100 series', desc: 'Acumulaste 100 series completadas. ¡Bestia!' },
+  { id: 'streak_3', icon: '🏆', name: '3 semanas', desc: 'Completaste 3 semanas seguidas sin parar.' },
+  { id: 'streak_5', icon: '👑', name: '5 semanas', desc: '5 semanas consecutivas. ¡Eres constante!' },
+  { id: 'streak_10', icon: '🌟', name: '10 semanas', desc: '10 semanas seguidas. ¡Leyenda!' },
+];
+
+if (!state.achievements) state.achievements = [];
+if (!state.streak) state.streak = 0;
+if (!state.bestStreak) state.bestStreak = 0;
+
+let achQueue = [];
+let achShowing = false;
+
+function calcStreak() {
+  let streak = 0;
+  let w = state.week;
+  // Check backwards from current week
+  while (w >= 1) {
+    if (isWeekComplete(w)) streak++;
+    else break;
+    w--;
+  }
+  return streak;
+}
+
+function checkAchievements() {
+  const streak = calcStreak();
+  state.streak = streak;
+  if (streak > state.bestStreak) state.bestStreak = streak;
+
+  const toCheck = [
+    { id: 'first_session', cond: state.completedSessions.length >= 1 },
+    { id: 'first_week', cond: (() => { const mw = Math.max(...state.completedSessions.map(s=>parseInt(s.split('_')[0])),0); for(let w=1;w<=mw;w++){if(isWeekComplete(w))return true;} return false; })() },
+    { id: 'first_boost', cond: Object.keys(state.boosts).length > 0 },
+    { id: 'sets_50', cond: state.totalSets >= 50 },
+    { id: 'sets_100', cond: state.totalSets >= 100 },
+    { id: 'streak_3', cond: state.bestStreak >= 3 },
+    { id: 'streak_5', cond: state.bestStreak >= 5 },
+    { id: 'streak_10', cond: state.bestStreak >= 10 },
+  ];
+
+  toCheck.forEach(({ id, cond }) => {
+    if (cond && !state.achievements.includes(id)) {
+      state.achievements.push(id);
+      const ach = ACHIEVEMENTS.find(a => a.id === id);
+      if (ach) achQueue.push(ach);
+    }
+  });
+
+  save();
+  if (achQueue.length > 0 && !achShowing) showNextAchievement();
+}
+
+function showNextAchievement() {
+  if (achQueue.length === 0) { achShowing = false; return; }
+  achShowing = true;
+  const ach = achQueue.shift();
+  document.getElementById('ach-icon').textContent = ach.icon;
+  document.getElementById('ach-name').textContent = ach.name;
+  document.getElementById('ach-desc').textContent = ach.desc;
+  const overlay = document.getElementById('achievement-overlay');
+  const card = document.getElementById('achievement-card');
+  overlay.style.display = 'flex';
+  setTimeout(() => card.classList.add('show'), 50);
+}
+
+function closeAchievement() {
+  const card = document.getElementById('achievement-card');
+  card.classList.remove('show');
+  setTimeout(() => {
+    document.getElementById('achievement-overlay').style.display = 'none';
+    achShowing = false;
+    if (achQueue.length > 0) setTimeout(showNextAchievement, 400);
+  }, 300);
+}
+
+function renderAchievements() {
+  const grid = document.getElementById('achievements-grid');
+  if (!grid) return;
+  grid.innerHTML = ACHIEVEMENTS.map(a => {
+    const unlocked = state.achievements.includes(a.id);
+    return `<div class="achievement-badge ${unlocked ? 'unlocked' : ''}" title="${a.desc}">
+      <div class="badge-icon">${a.icon}</div>
+      <div class="badge-name">${a.name}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMotivation() {
+  const streak = calcStreak();
+  const messages = [
+    { min: 0, max: 0, emoji: '🌱', msg: '¡Empieza hoy tu primera semana!', sub: 'El primer paso es el más importante' },
+    { min: 1, max: 2, emoji: '💪', msg: '¡Buen inicio, sigue así!', sub: 'Estás construyendo el hábito' },
+    { min: 3, max: 5, emoji: '🔥', msg: '¡Estás cogiendo ritmo!', sub: 'La constancia es tu superpoder' },
+    { min: 6, max: 9, emoji: '⚡', msg: '¡Imparable! Semana tras semana.', sub: 'Tu espalda te lo agradecerá' },
+    { min: 10, max: 999, emoji: '👑', msg: '¡Eres una máquina, no pares!', sub: streak + ' semanas seguidas. ¡Leyenda!' },
+  ];
+  const m = messages.find(m => streak >= m.min && streak <= m.max);
+  document.getElementById('motivation-emoji').textContent = m.emoji;
+  document.getElementById('motivation-msg').textContent = m.msg;
+  document.getElementById('motivation-streak').textContent = streak > 0
+    ? `🔥 Racha: ${streak} semana${streak > 1 ? 's' : ''} · Récord: ${state.bestStreak}`
+    : 'Racha: 0 semanas';
 }
 
 // ── MUSCLE PROGRESS ──────────────────────────────────────
@@ -1838,6 +2081,8 @@ function render() {
   renderProgress();
   renderStats();
   renderMuscleProgress();
+  renderMotivation();
+  renderAchievements();
 }
 
 render();
