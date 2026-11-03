@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plan de Espalda — Seguimiento</title>
+<title>Plan de Fuerza — Seguimiento</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1021,13 +1021,23 @@
   .day-btn.extra.completed { border-color: var(--accent2); color: var(--accent2); }
   .day-btn.extra .extra-label { font-size: 0.6rem; display: block; color: var(--accent2); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
   .day-btn .remove-extra { font-size: 0.65rem; color: #ff4747; display: block; margin-top: 4px; }
+
+  .day-btn .focus { display:block; font-family:'DM Sans',sans-serif; font-size:0.58rem; letter-spacing:0.02em; color:var(--muted); margin-top:3px; text-transform:uppercase; line-height:1.2; }
+  .day-btn.active .focus, .day-btn.completed .focus { color: inherit; opacity:0.8; }
+  .session-header h2 { font-size: 1.05rem; }
+  .extra-picker { display:none; margin:-16px 0 24px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:12px; }
+  .picker-title { font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px; }
+  .picker-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .picker-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:10px 4px; font-family:'Bebas Neue',sans-serif; font-size:0.95rem; letter-spacing:0.05em; cursor:pointer; }
+  .picker-btn span { display:block; font-family:'DM Sans',sans-serif; font-size:0.55rem; color:var(--muted); margin-top:2px; text-transform:uppercase; }
+  .picker-btn:hover { border-color:var(--accent2); }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Plan Espalda</h1>
-  <p>Seguimiento de entrenamiento · 3 días/semana</p>
+  <h1>Plan Fuerza</h1>
+  <p>Seguimiento de entrenamiento · 5 días/semana</p>
 </header>
 
 <div class="motivation-banner" id="motivation-banner">
@@ -1046,6 +1056,7 @@
 
 <div class="days-grid" id="days-grid"></div>
 <button class="add-extra-btn" onclick="addExtraSession()">➕ Añadir sesión extra</button>
+<div class="extra-picker" id="extra-picker"></div>
 
 <div class="session-panel">
   <div class="session-header">
@@ -1107,10 +1118,10 @@
   <div class="stretch-inner">
     <div class="stretch-header">
       <h2>🧘 Estiramientos</h2>
-      <p>Vuelta a la calma · 6 ejercicios · ~8 min</p>
+      <p id="stretch-subtitle">Vuelta a la calma</p>
     </div>
     <div class="stretch-progress-row">
-      <span id="stretch-done-label">0 de 6 completados</span>
+      <span id="stretch-done-label">0 de 0 completados</span>
       <span id="stretch-pct">0%</span>
     </div>
     <div class="stretch-progress-bar">
@@ -1266,81 +1277,337 @@ function addTime(secs) {
 }
 
 // ── APP ─────────────────────────────────────────────────
-const EXERCISES = [
-  { name: "Superman", sets: 3, reps: "12-15", muscle: "Lumbar" },
-  { name: "Bird-Dog", sets: 3, reps: "10 c/lado", muscle: "Estabilizadores" },
-  { name: "Face Pull con banda", sets: 3, reps: "15", muscle: "Trapecios/Romboides" },
-  { name: "Remo con banda", sets: 3, reps: "10-12", muscle: "Dorsal" },
-  { name: "Pull-apart con banda", sets: 3, reps: "15", muscle: "Romboides" },
-  { name: "Pulldown con banda", sets: 3, reps: "12", muscle: "Dorsal ancho" },
-  { name: "Puente con pausa", sets: 3, reps: "12", muscle: "Lumbar baja" }
+const WEEK_GOAL = 5;                 // sesiones necesarias para completar la semana
+const STORAGE_KEY = 'fuerza5_state'; // el progreso del plan antiguo queda guardado aparte
+
+// ── PLAN DE 5 DÍAS ───────────────────────────────────────
+// g = grupos musculares para las barras de progreso · m = etiqueta que se ve en la tarjeta
+const PLAN = [
+  {
+    day: "LUNES", focus: "Pecho + tríceps",
+    stretches: ["pecho_puerta", "triceps", "hombro_cruzado"],
+    exercises: [
+      { name: "Flexiones con banda por la espalda", sets: 4, reps: "8-15", m: "Pecho", g: ["Pecho", "Tríceps"],
+        how: "Pasa la banda por detrás de la espalda y sujeta los extremos con las manos en el suelo. Baja el pecho controlado y empuja arriba sin hundir la cadera. Si cuesta, apoya las rodillas." },
+      { name: "Flexiones declinadas", sets: 3, reps: "8-12", m: "Pecho alto", g: ["Pecho", "Hombros"],
+        how: "Pies sobre una silla y manos en el suelo, cuerpo en línea recta. Baja el pecho casi hasta el suelo. Empuja arriba sin arquear la espalda." },
+      { name: "Press de pecho con banda", sets: 4, reps: "10-15", m: "Pecho", g: ["Pecho", "Tríceps"],
+        anchor: "Ancla la banda detrás de ti, a la altura del pecho (puerta cerrada).",
+        how: "De pie y de espaldas al ancla, con un paso adelante. Empuja las asas hacia delante hasta estirar los brazos. Vuelve lento." },
+      { name: "Aperturas de pecho con banda", sets: 3, reps: "12-15", m: "Pecho", g: ["Pecho"],
+        anchor: "Ancla la banda detrás de ti, a la altura del pecho (puerta cerrada).",
+        how: "Brazos abiertos con ligera flexión de codo. Cierra los brazos al frente como un abrazo. Aprieta el pecho al final." },
+      { name: "Extensión de tríceps con banda", sets: 4, reps: "12-15", m: "Tríceps", g: ["Tríceps"],
+        anchor: "Ancla la banda arriba de la puerta.",
+        how: "De cara al ancla, con los codos pegados al cuerpo. Estira los brazos hacia abajo sin mover los codos. Sube lento." },
+      { name: "Fondos en silla", sets: 3, reps: "10-15", m: "Tríceps", g: ["Tríceps"],
+        how: "Manos en el borde de una silla firme y piernas estiradas o dobladas. Baja doblando los codos hacia atrás hasta unos 90°. Empuja arriba." }
+    ]
+  },
+  {
+    day: "MARTES", focus: "Espalda + bíceps",
+    stretches: ["nino", "hilo", "biceps", "dorsal_lateral"],
+    exercises: [
+      { name: "Remo con banda", sets: 4, reps: "10-15", m: "Espalda", g: ["Espalda", "Bíceps"],
+        anchor: "Pisa la banda, o anclala a la altura del ombligo.",
+        how: "Tira de las asas hacia las costillas juntando los omóplatos. Mantén el pecho abierto. Vuelve lento sin encoger los hombros." },
+      { name: "Pulldown con banda", sets: 4, reps: "10-15", m: "Dorsal", g: ["Espalda", "Bíceps"],
+        anchor: "Ancla la banda en lo alto de la puerta.",
+        how: "De rodillas frente al ancla, tira de las asas hacia abajo. Lleva los codos a las costillas. Sube controlado." },
+      { name: "Remo a una mano", sets: 3, reps: "12 c/lado", m: "Dorsal", g: ["Espalda", "Bíceps"],
+        anchor: "Ancla a media altura, o pisa la banda.",
+        how: "Un brazo cada vez: tira del asa hacia la cadera con el codo pegado. Aprieta el omóplato. Baja lento." },
+      { name: "Face pull con banda", sets: 3, reps: "15", m: "Trapecios/Romboides", g: ["Espalda", "Hombros"],
+        anchor: "Ancla la banda a la altura de la cara.",
+        how: "Tira de las asas hacia la cara abriendo los codos hacia fuera y atrás. Aprieta los omóplatos 1-2 s. Vuelve lento." },
+      { name: "Pull-apart con banda", sets: 3, reps: "15", m: "Romboides", g: ["Espalda", "Hombros"],
+        how: "Sujeta la banda con los brazos estirados al frente. Sepáralos hacia los lados hasta que toque el pecho. Vuelve lento sin perder tensión." },
+      { name: "Curl de bíceps con banda", sets: 4, reps: "10-15", m: "Bíceps", g: ["Bíceps"],
+        anchor: "Pisa la banda con ambos pies.",
+        how: "Codos pegados al cuerpo. Sube las asas hacia los hombros sin balancear el torso. Baja lento." }
+    ]
+  },
+  {
+    day: "MIÉRCOLES", focus: "Piernas y glúteos",
+    stretches: ["cuadriceps", "isquios", "gluteo_4", "flexor_cadera", "gemelo"],
+    exercises: [
+      { name: "Sentadilla con banda", sets: 4, reps: "12-20", m: "Cuádriceps", g: ["Piernas", "Glúteos"],
+        anchor: "Pisa la banda y coloca las asas sobre los hombros.",
+        how: "Pies a la anchura de hombros. Baja con la espalda recta hasta que los muslos queden paralelos. Sube empujando con los talones." },
+      { name: "Zancada búlgara", sets: 3, reps: "8-12 c/lado", m: "Cuádriceps/Glúteo", g: ["Piernas", "Glúteos"],
+        how: "Pie trasero apoyado en una silla. Baja la rodilla trasera hacia el suelo con el torso recto. Sube empujando con la pierna delantera." },
+      { name: "Peso muerto rumano con banda", sets: 4, reps: "12-15", m: "Isquios", g: ["Piernas", "Glúteos", "Lumbar"],
+        anchor: "Pisa la banda y sujeta las asas.",
+        how: "Rodillas ligeramente flexionadas. Lleva la cadera atrás con la espalda neutra hasta notar los isquios. Sube apretando los glúteos." },
+      { name: "Puente de glúteos con mini loop", sets: 4, reps: "12-15", m: "Glúteos", g: ["Glúteos"],
+        anchor: "Mini loop justo encima de las rodillas.",
+        how: "Boca arriba, empuja las rodillas hacia fuera contra la banda. Sube la cadera apretando glúteos. Aguanta 1-2 s arriba." },
+      { name: "Caminata lateral con mini loop", sets: 3, reps: "12 pasos c/lado", m: "Glúteo medio", g: ["Glúteos"],
+        anchor: "Mini loop sobre las rodillas o los tobillos.",
+        how: "En semisentadilla, da pasos laterales manteniendo tensión en la banda. No juntes los pies del todo. Pasos por cada lado." },
+      { name: "Elevación de gemelos a una pierna", sets: 4, reps: "15-20 c/lado", m: "Gemelos", g: ["Piernas"],
+        how: "De pie sobre una pierna, apoyándote en la pared. Sube de puntillas todo lo que puedas. Baja lento." }
+    ]
+  },
+  {
+    day: "JUEVES", focus: "Hombros + core",
+    stretches: ["hombro_cruzado", "cuello", "cobra", "rot_hombros"],
+    exercises: [
+      { name: "Press de hombros con banda", sets: 4, reps: "10-15", m: "Hombros", g: ["Hombros", "Tríceps"],
+        anchor: "Pisa la banda con ambos pies.",
+        how: "Asas a la altura de los hombros. Empuja hacia arriba hasta estirar los brazos. No arquees la espalda." },
+      { name: "Elevaciones laterales con banda", sets: 4, reps: "12-20", m: "Deltoides lateral", g: ["Hombros"],
+        anchor: "Pisa la banda.",
+        how: "Brazos a los lados con ligera flexión de codo. Sube hacia los lados hasta la altura de los hombros. Baja lento." },
+      { name: "Pájaros con banda", sets: 3, reps: "15", m: "Deltoides posterior", g: ["Hombros", "Espalda"],
+        anchor: "Pisa la banda.",
+        how: "Inclinado hacia delante con la espalda recta. Abre los brazos hacia los lados apretando los omóplatos. Vuelve lento." },
+      { name: "Plancha", sets: 3, reps: "30-60 s", m: "Core", g: ["Core"],
+        how: "Antebrazos y puntas de los pies en el suelo, cuerpo en línea recta. Aprieta abdomen y glúteos. No hundas la cadera. En boost anota los segundos." },
+      { name: "Crunch con banda anclada arriba", sets: 3, reps: "12-15", m: "Abdominales", g: ["Core"],
+        anchor: "Ancla la banda arriba de la puerta.",
+        how: "De rodillas, con las asas junto a la cabeza. Flexiona el tronco llevando los codos hacia las rodillas. Trabaja con el abdomen, no con los brazos." },
+      { name: "Elevaciones de piernas tumbado", sets: 3, reps: "12-15", m: "Abdomen bajo", g: ["Core"],
+        how: "Boca arriba con la zona lumbar pegada al suelo. Sube las piernas casi estiradas hasta 90°. Baja lento sin tocar el suelo." }
+    ]
+  },
+  {
+    day: "VIERNES", focus: "Lumbar + isquios + brazos",
+    stretches: ["gato_vaca", "torsion", "nino", "isquios"],
+    exercises: [
+      { name: "Superman", sets: 3, reps: "12-15", m: "Lumbar", g: ["Lumbar"],
+        how: "Boca abajo, levanta brazos, pecho y piernas a la vez. Mantén 2 s arriba mirando al suelo. Baja lento sin impulso." },
+      { name: "Bird-Dog", sets: 3, reps: "10 c/lado", m: "Estabilizadores", g: ["Lumbar", "Core"],
+        how: "A cuatro patas, extiende brazo derecho y pierna izquierda a la vez. No gires la cadera. Mantén 2 s y alterna." },
+      { name: "Buenos días con banda", sets: 4, reps: "12-15", m: "Lumbar/Glúteos", g: ["Lumbar", "Glúteos", "Piernas"],
+        anchor: "Pisa la banda y pásala por detrás de los hombros.",
+        how: "Con la banda sobre los hombros, lleva la cadera atrás con la espalda recta. Nota el estiramiento en los isquios. Vuelve apretando glúteos." },
+      { name: "Puente a una pierna con pausa", sets: 3, reps: "10 c/lado", m: "Glúteos/Isquios", g: ["Glúteos", "Piernas"],
+        how: "Boca arriba con una pierna estirada. Sube la cadera empujando con la otra pierna. Aguanta 2-3 s y baja lento." },
+      { name: "Superserie: curl martillo + tríceps sobre la cabeza", sets: 3, reps: "12-15", m: "Brazos", g: ["Bíceps", "Tríceps"],
+        anchor: "Pisa la banda. Para el tríceps, pisa un extremo y sube el otro por encima de la cabeza.",
+        how: "Haz una serie de curl martillo y, sin descanso, otra de extensión de tríceps sobre la cabeza. La serie cuenta cuando completas las dos." },
+      { name: "Pull-apart con mini loop", sets: 3, reps: "15", m: "Romboides", g: ["Espalda", "Hombros"],
+        anchor: "Mini loop alrededor de las muñecas.",
+        how: "Brazos estirados al frente con el mini loop en las muñecas. Sepáralos hacia los lados apretando los omóplatos. Vuelve lento." }
+    ]
+  }
 ];
 
-const TOTAL_SETS = EXERCISES.reduce((s, e) => s + e.sets, 0);
-const DAYS = ["LUNES", "MIÉRCOLES", "VIERNES"];
+const MUSCLE_GROUPS = ["Pecho", "Espalda", "Hombros", "Bíceps", "Tríceps", "Piernas", "Glúteos", "Core", "Lumbar"];
 
-let state = JSON.parse(localStorage.getItem('espalda_state') || 'null') || {
-  week: 1,
-  activeDay: 0,
-  sets: {},
-  boosts: {},
-  completedSessions: [],
-  extraSessions: {},
-  totalSets: 0
+// ── ESTIRAMIENTOS ────────────────────────────────────────
+const STRETCH_LIB = {
+  pecho_puerta: { name: "Pecho en puerta", time: "45 seg · 2 veces", muscle: "Pectoral · Hombros anteriores",
+    steps: ["De pie en el marco de una puerta, apoya los antebrazos en el marco con los codos a la altura de los hombros.", "Da un paso adelante y deja caer suavemente el pecho.", "Siente el estiramiento en el pecho y la parte delantera del hombro.", "Aguanta 45 segundos y repite."],
+    tip: "<strong>Por qué:</strong> Un pecho acortado tira de los hombros hacia delante; este estiramiento lo contrarresta." },
+  triceps: { name: "Tríceps sobre la cabeza", time: "30 seg cada brazo", muscle: "Tríceps",
+    steps: ["Sube un brazo y dobla el codo llevando la mano detrás de la nuca.", "Con la otra mano, empuja suavemente el codo hacia atrás.", "Mantén el torso recto y respira.", "Aguanta 30 segundos y cambia de brazo."],
+    tip: "<strong>Por qué:</strong> Alivia la tensión de la parte posterior del brazo tras los empujes." },
+  hombro_cruzado: { name: "Hombro cruzado", time: "30 seg cada lado", muscle: "Deltoides posterior",
+    steps: ["Lleva un brazo estirado cruzando el pecho.", "Con el otro brazo, presiónalo suavemente cerca del codo.", "Mantén el hombro bajo, sin encogerlo.", "Aguanta 30 segundos y cambia."],
+    tip: "<strong>Por qué:</strong> Libera el hombro después de los press y las elevaciones." },
+  nino: { name: "Postura del niño", time: "60 seg", muscle: "Lumbar · Dorsales · Caderas",
+    steps: ["Arrodíllate y siéntate sobre los talones.", "Estira los brazos hacia delante y baja el pecho hacia el suelo.", "Deja caer la frente y relaja los hombros.", "Respira profundo durante 60 segundos."],
+    tip: "<strong>Por qué:</strong> Descomprime la columna y estira los dorsales." },
+  hilo: { name: "Hilo de aguja", time: "45 seg cada lado", muscle: "Dorsal · Trapecio · Columna torácica",
+    steps: ["A cuatro patas, manos bajo hombros y rodillas bajo caderas.", "Desliza un brazo por el suelo hacia el lado contrario, por debajo del cuerpo.", "El hombro y la oreja de ese lado descansan en el suelo.", "Aguanta 45 segundos y cambia de lado."],
+    tip: "<strong>Por qué:</strong> Mejora la rotación de la espalda alta." },
+  biceps: { name: "Bíceps en pared", time: "30 seg cada brazo", muscle: "Bíceps · Pecho",
+    steps: ["Apoya la palma de la mano en una pared con el brazo estirado y los dedos hacia atrás.", "Gira lentamente el torso en sentido contrario al brazo.", "Mantén el codo estirado.", "Aguanta 30 segundos y cambia."],
+    tip: "<strong>Por qué:</strong> Estira el bíceps tras los remos y los curls." },
+  dorsal_lateral: { name: "Dorsal lateral", time: "30 seg cada lado", muscle: "Dorsal ancho · Costado",
+    steps: ["De pie o sentado, sube un brazo por encima de la cabeza.", "Inclina el tronco hacia el lado contrario, alargando el costado.", "Respira profundo sin girar el torso.", "Aguanta 30 segundos y cambia."],
+    tip: "<strong>Por qué:</strong> Alarga el dorsal que has trabajado en los tirones." },
+  cuadriceps: { name: "Cuádriceps de pie", time: "30 seg cada pierna", muscle: "Cuádriceps",
+    steps: ["De pie, apóyate en una pared o una silla.", "Dobla una rodilla y lleva el talón hacia el glúteo, sujetando el pie.", "Mantén las rodillas juntas y la cadera hacia delante.", "Aguanta 30 segundos y cambia."],
+    tip: "<strong>Por qué:</strong> Recupera los cuádriceps después de sentadillas y zancadas." },
+  isquios: { name: "Isquiotibiales tumbado", time: "30 seg cada pierna", muscle: "Isquios",
+    steps: ["Boca arriba, sube una pierna estirada y sujétala por detrás del muslo.", "Acércala hacia ti sin forzar.", "Mantén la cabeza y la espalda apoyadas.", "Aguanta 30 segundos y cambia."],
+    tip: "<strong>Por qué:</strong> Unos isquios flexibles ayudan a mantener la pelvis y la lumbar en buena posición." },
+  gluteo_4: { name: "Glúteo (figura 4)", time: "30-45 seg cada lado", muscle: "Glúteos · Piriforme",
+    steps: ["Boca arriba con las rodillas dobladas.", "Cruza un tobillo sobre la rodilla contraria.", "Sujeta el muslo de la pierna de apoyo y acércalo al pecho.", "Aguanta y cambia de lado."],
+    tip: "<strong>Por qué:</strong> Suelta el glúteo y la cadera tras el trabajo de pierna." },
+  flexor_cadera: { name: "Flexor de cadera", time: "30 seg cada lado", muscle: "Psoas · Cuádriceps",
+    steps: ["Arrodíllate sobre una rodilla (pon algo blando debajo) con el otro pie delante.", "Aprieta el glúteo de la pierna trasera y lleva la cadera suavemente hacia delante.", "Mantén el torso erguido sin arquear la lumbar.", "Aguanta 30 segundos y cambia."],
+    tip: "<strong>Por qué:</strong> Un psoas tenso tira de la lumbar y empeora la postura." },
+  gemelo: { name: "Gemelo en pared", time: "30 seg cada pierna", muscle: "Gemelos · Sóleo",
+    steps: ["Manos en la pared y una pierna atrás con el talón en el suelo.", "Dobla la rodilla delantera y empuja la cadera hacia la pared.", "Mantén el talón trasero pegado al suelo.", "Aguanta 30 segundos y cambia."],
+    tip: "<strong>Por qué:</strong> Descarga los gemelos después de las elevaciones." },
+  cuello: { name: "Cuello lateral", time: "30 seg cada lado", muscle: "Trapecio superior · Cuello",
+    steps: ["Sentado o de pie, con la espalda recta.", "Inclina la oreja hacia el hombro del mismo lado.", "Si quieres más, apoya la mano en la cabeza sin tirar.", "Aguanta 30 segundos y cambia."],
+    tip: "<strong>Por qué:</strong> Relaja el trapecio superior después de los press de hombro." },
+  cobra: { name: "Estiramiento de cobra", time: "30 seg · 3 veces", muscle: "Abdominales · Columna lumbar",
+    steps: ["Boca abajo, manos bajo los hombros y codos pegados al cuerpo.", "Empuja con las manos para elevar el pecho.", "Mantén las caderas apoyadas en el suelo.", "Sube hasta donde puedas sin dolor, aguanta 30 segundos y repite 3 veces."],
+    tip: "<strong>Por qué:</strong> Estira el abdomen tras el trabajo de core y mejora la extensión lumbar." },
+  rot_hombros: { name: "Rotaciones de hombros", time: "10 delante + 10 atrás", muscle: "Hombros · Trapecios",
+    steps: ["De pie con los brazos relajados.", "Dibuja círculos amplios con los hombros hacia delante.", "Después, 10 hacia atrás.", "Mantén el cuello relajado."],
+    tip: "<strong>Por qué:</strong> Devuelve movilidad a la articulación tras los press." },
+  gato_vaca: { name: "Gato-Vaca", time: "10 reps lentas", muscle: "Columna completa · Erectores",
+    steps: ["A cuatro patas: manos bajo hombros, rodillas bajo caderas.", "VACA: inhala, hunde la barriga y sube la cabeza y el cóccix.", "GATO: exhala, redondea la espalda y mete la barbilla al pecho.", "Alterna despacio coordinando con la respiración."],
+    tip: "<strong>Por qué:</strong> Moviliza toda la columna y alivia la tensión de los erectores." },
+  torsion: { name: "Torsión supina", time: "45 seg cada lado", muscle: "Lumbar · Glúteos · Columna",
+    steps: ["Tumbado boca arriba, dobla la rodilla derecha hacia el pecho.", "Con la mano izquierda, lleva esa rodilla hacia el lado izquierdo del suelo.", "Extiende el brazo derecho hacia el lado y mira hacia la derecha.", "Mantén los hombros pegados al suelo, aguanta 45 segundos y cambia."],
+    tip: "<strong>Por qué:</strong> Alivia la lumbar y mejora la rotación de la columna." }
 };
-if (!state.boosts) state.boosts = {};
-if (!state.extraSessions) state.extraSessions = {};
-if (!state.achievements) state.achievements = [];
-if (!state.streak) state.streak = 0;
-if (!state.bestStreak) state.bestStreak = 0;
 
-function save() { localStorage.setItem('espalda_state', JSON.stringify(state)); }
+// ── LOGROS ───────────────────────────────────────────────
+const ACHIEVEMENTS = [
+  { id: 'first_session', icon: '🥇', name: 'Primera sesión', desc: 'Completaste tu primera sesión de entrenamiento.' },
+  { id: 'first_week', icon: '🔥', name: 'Primera semana', desc: 'Completaste tu primera semana de ' + WEEK_GOAL + ' sesiones.' },
+  { id: 'first_boost', icon: '⚡', name: 'Primer boost', desc: 'Superaste las reps objetivo por primera vez.' },
+  { id: 'sets_50', icon: '💪', name: '50 series', desc: 'Acumulaste 50 series completadas en total.' },
+  { id: 'sets_100', icon: '🦾', name: '100 series', desc: 'Acumulaste 100 series completadas. ¡Bestia!' },
+  { id: 'streak_3', icon: '🏆', name: '3 semanas', desc: 'Completaste 3 semanas seguidas sin parar.' },
+  { id: 'streak_5', icon: '👑', name: '5 semanas', desc: '5 semanas consecutivas. ¡Eres constante!' },
+  { id: 'streak_10', icon: '🌟', name: '10 semanas', desc: '10 semanas seguidas. ¡Leyenda!' }
+];
 
-function key(week, day, ex, set) { return `${week}_${day}_${ex}_${set}`; }
+// ── ESTADO ───────────────────────────────────────────────
+function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
-function boostKey(week, day, ex, set) { return `b_${week}_${day}_${ex}_${set}`; }
+function loadState() {
+  let s = null;
+  try { s = JSON.parse(safeGet(STORAGE_KEY) || 'null'); } catch (e) { s = null; }
+  if (!s) {
+    s = { week: 1, activeDay: '0', sets: {}, boosts: {}, completedSessions: [], extraSessions: {},
+          nextExtraId: 1, achievements: [], bestStreak: 0 };
+    // Los logros ya conseguidos con el plan anterior se conservan
+    try {
+      const old = JSON.parse(safeGet('espalda_state') || 'null');
+      if (old && Array.isArray(old.achievements)) s.achievements = old.achievements.slice();
+    } catch (e) {}
+  }
+  if (!s.sets) s.sets = {};
+  if (!s.boosts) s.boosts = {};
+  if (!s.completedSessions) s.completedSessions = [];
+  if (!s.extraSessions) s.extraSessions = {};
+  if (!s.nextExtraId) s.nextExtraId = 1;
+  if (!s.achievements) s.achievements = [];
+  if (!s.bestStreak) s.bestStreak = 0;
+  s.activeDay = String(s.activeDay === undefined ? '0' : s.activeDay);
+  return s;
+}
+
+let state = loadState();
+function save() { safeSet(STORAGE_KEY, JSON.stringify(state)); }
+
+// ── AYUDAS ───────────────────────────────────────────────
+function key(week, day, ex, set) { return week + '_' + day + '_' + ex + '_' + set; }
+function boostKey(week, day, ex, set) { return 'b_' + week + '_' + day + '_' + ex + '_' + set; }
+function isFixed(id) { return String(id).charAt(0) !== 'x'; }
+function extrasOf(week) { return state.extraSessions[week] || []; }
+function findExtra(week, id) { return extrasOf(week).find(e => 'x' + e.id === String(id)); }
+
+function planFor(week, id) {
+  if (isFixed(id)) return PLAN[parseInt(id, 10)] || PLAN[0];
+  const ex = findExtra(week, id);
+  return ex ? PLAN[ex.base] : PLAN[0];
+}
+
+function dayLabel(week, id) {
+  if (isFixed(id)) return (PLAN[parseInt(id, 10)] || PLAN[0]).day;
+  const ex = findExtra(week, id);
+  return ex ? ex.name : '';
+}
+
+function targetOf(ex) {
+  const n = parseInt(String(ex.reps).replace(/[^0-9]/g, ' ').trim().split(/\s+/)[0], 10);
+  return isNaN(n) ? 10 : n;
+}
+
+function totalSetsOf(plan) { return plan.exercises.reduce((s, e) => s + e.sets, 0); }
+function countSets() { return Object.keys(state.sets).filter(k => state.sets[k]).length; }
+
+function nextLabel(plan, ei, si) {
+  const ex = plan.exercises[ei];
+  if (si + 1 < ex.sets) return 'Serie ' + (si + 2) + ' · ' + ex.name;
+  if (plan.exercises[ei + 1]) return plan.exercises[ei + 1].name;
+  return '¡Último ejercicio hecho!';
+}
+
+// ── SEMANAS Y SESIONES ───────────────────────────────────
+function sessionIdsForWeek(week) {
+  const prefix = week + '_';
+  return state.completedSessions.filter(s => s.indexOf(prefix) === 0).map(s => s.slice(prefix.length));
+}
+
+function isWeekComplete(week) { return sessionIdsForWeek(week).length >= WEEK_GOAL; }
+
+function maxWeekWithSessions() {
+  return Math.max.apply(null, state.completedSessions.map(s => parseInt(s.split('_')[0], 10)).concat([0]));
+}
+
+function anyWeekComplete() {
+  const mw = maxWeekWithSessions();
+  for (let w = 1; w <= mw; w++) if (isWeekComplete(w)) return true;
+  return false;
+}
+
+function calcStreak() {
+  let streak = 0;
+  let w = isWeekComplete(state.week) ? state.week : state.week - 1;
+  while (w >= 1 && isWeekComplete(w)) { streak++; w--; }
+  return streak;
+}
+
+function changeWeek(d) {
+  state.week = Math.max(1, Math.min(99, state.week + d));
+  state.activeDay = '0';
+  save();
+  render();
+}
+
+function selectDay(id) {
+  state.activeDay = String(id);
+  save();
+  render();
+}
+
+// ── SERIES Y BOOST ───────────────────────────────────────
+function toggleSet(ei, si) {
+  const plan = planFor(state.week, state.activeDay);
+  const k = key(state.week, state.activeDay, ei, si);
+  state.sets[k] = !state.sets[k];
+  if (state.sets[k]) startTimer(nextLabel(plan, ei, si));
+  else skipTimer();
+  save();
+  renderExercises();
+  renderProgress();
+  renderStats();
+  renderMuscleProgress();
+}
 
 function openBoost(ei, si) {
-  const inputId = `boost-input-${ei}-${si}`;
+  const inputId = 'boost-input-' + ei + '-' + si;
   const existing = document.getElementById(inputId);
-  if (existing) {
-    existing.parentElement.remove();
-    return;
-  }
+  if (existing) { existing.parentElement.remove(); return; }
   const bk = boostKey(state.week, state.activeDay, ei, si);
   const current = state.boosts[bk] || '';
-  const wrapper = document.getElementById(`boost-wrap-${ei}-${si}`);
+  const wrapper = document.getElementById('boost-wrap-' + ei + '-' + si);
   const inputBox = document.createElement('div');
   inputBox.style.cssText = 'display:flex;gap:6px;margin-top:4px;';
-  inputBox.innerHTML = `
-    <input id="${inputId}" type="number" min="1" max="999" value="${current}"
-      placeholder="reps"
-      style="flex:1;background:var(--bg);border:1px solid var(--accent);border-radius:6px;
-             padding:4px 8px;color:var(--text);font-size:0.85rem;text-align:center;width:100%;">
-    <button onclick="saveBoost(${ei},${si})"
-      style="background:var(--accent);color:#000;border:none;border-radius:6px;
-             padding:4px 10px;font-weight:600;font-size:0.8rem;cursor:pointer;">✓</button>
-    <button onclick="clearBoost(${ei},${si})"
-      style="background:transparent;border:1px solid var(--border);color:var(--muted);
-             border-radius:6px;padding:4px 8px;font-size:0.8rem;cursor:pointer;">✕</button>
-  `;
+  inputBox.innerHTML =
+    '<input id="' + inputId + '" type="number" min="1" max="999" value="' + current + '" placeholder="reps" ' +
+    'style="flex:1;background:var(--bg);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;color:var(--text);font-size:0.85rem;text-align:center;width:100%;min-width:0;">' +
+    '<button onclick="saveBoost(' + ei + ',' + si + ')" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:4px 10px;font-weight:600;font-size:0.8rem;cursor:pointer;">✓</button>' +
+    '<button onclick="clearBoost(' + ei + ',' + si + ')" style="background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 8px;font-size:0.8rem;cursor:pointer;">✕</button>';
   wrapper.appendChild(inputBox);
   document.getElementById(inputId).focus();
 }
 
 function saveBoost(ei, si) {
-  const inputId = `boost-input-${ei}-${si}`;
-  const val = parseInt(document.getElementById(inputId)?.value);
+  const plan = planFor(state.week, state.activeDay);
+  const input = document.getElementById('boost-input-' + ei + '-' + si);
+  const val = parseInt(input ? input.value : '', 10);
   const bk = boostKey(state.week, state.activeDay, ei, si);
   if (!isNaN(val) && val > 0) {
     state.boosts[bk] = val;
-    // Marcar serie como completada si no lo estaba
     const k = key(state.week, state.activeDay, ei, si);
     if (!state.sets[k]) {
       state.sets[k] = true;
-      state.totalSets++;
-      const nextEx = EXERCISES[ei + 1] ? EXERCISES[ei + 1].name : (si + 1 < EXERCISES[ei].sets ? EXERCISES[ei].name : '¡Fin del entrenamiento!');
-      startTimer(nextEx);
+      startTimer(nextLabel(plan, ei, si));
     }
   } else {
     delete state.boosts[bk];
@@ -1349,96 +1616,76 @@ function saveBoost(ei, si) {
   renderExercises();
   renderProgress();
   renderStats();
+  renderMuscleProgress();
   checkAchievements();
 }
 
 function clearBoost(ei, si) {
-  const bk = boostKey(state.week, state.activeDay, ei, si);
-  delete state.boosts[bk];
+  delete state.boosts[boostKey(state.week, state.activeDay, ei, si)];
   save();
   renderExercises();
+  renderMuscleProgress();
 }
 
-function changeWeek(d) {
-  state.week = Math.max(1, Math.min(12, state.week + d));
-  save();
-  render();
-}
-
-const EXTRA_DAY_NAMES = ["MARTES", "JUEVES", "SÁBADO", "DOMINGO"];
-
-function undoSession(sk) {
-  state.completedSessions = state.completedSessions.filter(s => s !== sk);
-  save();
-  renderDays();
-  renderStats();
-  showToast('↩ Sesión desmarcada');
-}
-
-function addExtraSession() {
-  const wk = state.week;
-  if (!state.extraSessions[wk]) state.extraSessions[wk] = [];
-  if (state.extraSessions[wk].length >= 4) {
-    showToast('Máximo 4 sesiones extra por semana');
-    return;
-  }
-  const idx = state.extraSessions[wk].length;
-  state.extraSessions[wk].push({ name: EXTRA_DAY_NAMES[idx] });
-  // Seleccionar el nuevo día extra
-  state.activeDay = DAYS.length + idx;
-  save();
-  renderDays();
-  renderExercises();
-  renderProgress();
-}
-
-function removeExtraSession(idx) {
-  const wk = state.week;
-  state.extraSessions[wk].splice(idx, 1);
-  if (state.activeDay >= DAYS.length) state.activeDay = 0;
-  save();
-  renderDays();
-  renderExercises();
-  renderProgress();
-}
-
-function keyForDay(week, dayIdx, ex, set) {
-  return `${week}_${dayIdx}_${ex}_${set}`;
-}
-
-function selectDay(d) {
-  state.activeDay = d;
-  save();
-  render();
-}
-
-function toggleSet(ex, set) {
-  const k = key(state.week, state.activeDay, ex, set);
-  state.sets[k] = !state.sets[k];
-  if (state.sets[k]) {
-    state.totalSets++;
-    // Start rest timer — show next exercise or "última serie"
-    const nextEx = EXERCISES[ex + 1] ? EXERCISES[ex + 1].name : (set + 1 < EXERCISES[ex].sets ? EXERCISES[ex].name : '¡Fin del entrenamiento!');
-    startTimer(nextEx);
-  } else {
-    state.totalSets = Math.max(0, state.totalSets - 1);
-    skipTimer();
-  }
-  save();
-  renderExercises();
-  renderProgress();
-  renderStats();
-}
-
+// ── FINALIZAR / DESHACER ─────────────────────────────────
 function finishSession() {
-  const sk = `${state.week}_${state.activeDay}`;
-  if (!state.completedSessions.includes(sk)) {
+  const sk = state.week + '_' + state.activeDay;
+  if (state.completedSessions.indexOf(sk) === -1) {
     state.completedSessions.push(sk);
     save();
   }
   skipTimer();
   openStretch();
 }
+
+function undoSession(sk) {
+  state.completedSessions = state.completedSessions.filter(s => s !== sk);
+  save();
+  renderDays();
+  renderStats();
+  renderMuscleProgress();
+  renderMotivation();
+  showToast('↩ Sesión desmarcada');
+}
+
+// ── SESIONES EXTRA ───────────────────────────────────────
+const EXTRA_NAMES = ["SÁBADO", "DOMINGO", "EXTRA 3", "EXTRA 4"];
+
+function addExtraSession() {
+  const picker = document.getElementById('extra-picker');
+  if (extrasOf(state.week).length >= EXTRA_NAMES.length) {
+    showToast('Máximo ' + EXTRA_NAMES.length + ' sesiones extra por semana');
+    return;
+  }
+  if (picker.style.display === 'block') { picker.style.display = 'none'; return; }
+  picker.innerHTML = '<div class="picker-title">¿Qué rutina quieres hacer?</div><div class="picker-grid">' +
+    PLAN.map((p, i) => '<button class="picker-btn" onclick="confirmExtra(' + i + ')">' + p.day +
+      '<span>' + p.focus + '</span></button>').join('') + '</div>';
+  picker.style.display = 'block';
+}
+
+function confirmExtra(base) {
+  const wk = state.week;
+  if (!state.extraSessions[wk]) state.extraSessions[wk] = [];
+  const used = state.extraSessions[wk].map(e => e.name);
+  const name = EXTRA_NAMES.find(n => used.indexOf(n) === -1) || ('EXTRA ' + (used.length + 1));
+  const id = state.nextExtraId++;
+  state.extraSessions[wk].push({ id: id, name: name, base: base });
+  state.activeDay = 'x' + id;
+  document.getElementById('extra-picker').style.display = 'none';
+  save();
+  render();
+}
+
+function removeExtraSession(id) {
+  const wk = state.week;
+  state.extraSessions[wk] = extrasOf(wk).filter(e => 'x' + e.id !== String(id));
+  if (state.activeDay === String(id)) state.activeDay = '0';
+  save();
+  render();
+}
+
+// ── UTILIDADES UI ────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1447,144 +1694,30 @@ function showToast(msg) {
 }
 
 function resetAll() {
-  if (confirm("¿Seguro que quieres borrar todo el progreso?")) {
-    state = { week: 1, activeDay: 0, sets: {}, completedSessions: [], totalSets: 0 };
+  if (confirm('¿Seguro que quieres borrar todo el progreso del plan actual?')) {
+    safeSet(STORAGE_KEY, '');
+    state = loadState();
+    state.achievements = [];
     save();
     render();
   }
 }
 
-// ── EXERCISE GUIDE DATA ──────────────────────────────────
-const GUIDES = [
-  {
-    name: "Superman",
-    muscle: "Erectores espinales · Lumbar · Glúteos",
-    img: "https://www.bodiapp.com/content/dam/exercise-library/superman.jpg",
-    anchor: null,
-    steps: [
-      "Túmbate boca abajo en el suelo, brazos estirados al frente y piernas juntas.",
-      "Al exhalar, levanta simultáneamente brazos, pecho y piernas del suelo.",
-      "Aprieta glúteos y zona lumbar durante la subida.",
-      "Mantén la posición 2-3 segundos arriba.",
-      "Baja lentamente sin desplomarte."
-    ],
-    tip: "<strong>Clave postura:</strong> No fuerces el cuello — la mirada va al suelo. Fortalece toda la cadena posterior y combate la espalda plana."
-  },
-  {
-    name: "Bird-Dog",
-    muscle: "Estabilizadores profundos · Lumbar · Glúteos",
-    img: "https://www.spine-health.com/sites/default/files/styles/article_full_width/public/2018-01/bird-dog-exercise.jpg",
-    anchor: null,
-    steps: [
-      "A cuatro patas: manos bajo hombros, rodillas bajo caderas. Espalda recta.",
-      "Extiende el brazo derecho al frente y la pierna izquierda atrás al mismo tiempo.",
-      "Mantén la cadera nivelada — no la gires.",
-      "Aguanta 2-3 segundos, vuelve al centro con control.",
-      "Alterna de lado."
-    ],
-    tip: "<strong>Clave postura:</strong> Entrena el control motor de la columna. Si te tambaleas mucho, empieza solo extendiendo la pierna sin el brazo."
-  },
-  {
-    name: "Face Pull con banda",
-    muscle: "Trapecio medio/bajo · Romboides · Manguito rotador",
-    img: "https://www.lipsticklifters.com/wp-content/uploads/2021/01/band-face-pull.jpg",
-    anchor: {
-      img: "https://www.resistancebandsguide.com/wp-content/uploads/2019/08/door-anchor-top.jpg",
-      text: "Pasa la banda circular por encima de la puerta (en lo alto) y ciérrala. Agarra cada lado del loop con una mano. La puerta debe abrirse hacia ti para mayor seguridad."
-    },
-    steps: [
-      "Ancla la banda en la parte alta de una puerta cerrada.",
-      "Agarra cada lado del loop, da un paso atrás para crear tensión.",
-      "Tira hacia tu cara llevando los codos hacia atrás y arriba.",
-      "Al llegar, abre los brazos en forma de 'W' apretando los omóplatos.",
-      "Vuelve lento — no dejes que los hombros caigan hacia adelante."
-    ],
-    tip: "<strong>Clave postura:</strong> Los codos deben quedar más altos que las muñecas al final. La apertura en 'W' es donde ocurre el trabajo real. El ejercicio más importante para corregir hombros caídos."
-  },
-  {
-    name: "Remo con banda",
-    muscle: "Dorsal ancho · Romboides · Bíceps",
-    img: "https://www.researchgate.net/profile/Brad-Schoenfeld/publication/312207100/figure/fig2/AS:449140677668864@1484090548002/Resistance-band-bent-over-row.jpg",
-    anchor: {
-      img: "https://www.inspireusafoundation.org/wp-content/uploads/2022/08/resistance-band-bent-over-row.gif",
-      text: "Pisa la banda con ambos pies (sepáralos a la anchura de caderas). Mete las manos dentro del loop por la parte superior. Sin ancla en puerta."
-    },
-    steps: [
-      "Pisa la banda con ambos pies, agarra el loop por arriba con ambas manos.",
-      "Inclínate ~45° hacia adelante, espalda recta, rodillas ligeramente dobladas.",
-      "Tira de la banda hacia las caderas llevando los codos pegados al cuerpo.",
-      "Aprieta los omóplatos al final del recorrido y mantén 1 segundo.",
-      "Baja lento hasta estirar los brazos completamente."
-    ],
-    tip: "<strong>Clave postura:</strong> No te incorpores para ayudarte — solo trabajan brazos y espalda. Cuanto más separes los pies sobre la banda, más tensión."
-  },
-  {
-    name: "Pull-apart con banda",
-    muscle: "Romboides · Trapecio medio · Deltoides posterior",
-    img: "https://www.inspireusafoundation.org/wp-content/uploads/2022/04/band-pull-apart.gif",
-    anchor: null,
-    steps: [
-      "De pie, sostén el loop con ambas manos separadas a la anchura de hombros, a la altura del pecho.",
-      "Mantén los brazos casi rectos (ligera flexión de codo).",
-      "Separa los brazos hacia los lados hasta que la banda toque el pecho.",
-      "Aprieta fuerte los omóplatos al final del movimiento.",
-      "Vuelve lento a la posición inicial sin perder tensión en la banda."
-    ],
-    tip: "<strong>Clave postura:</strong> Combate directamente los hombros encorvados del escritorio y el móvil. Empieza con manos muy separadas (menos tensión) e ir juntándolas según progresas."
-  },
-  {
-    name: "Pulldown con banda",
-    muscle: "Dorsal ancho · Teres mayor · Bíceps",
-    img: "https://rehabherophysio.com/wp-content/uploads/2023/01/banded-lat-pulldown.jpg",
-    anchor: {
-      img: "https://www.resistancebandsguide.com/wp-content/uploads/2019/08/door-anchor-top.jpg",
-      text: "Igual que el Face Pull: pasa la banda circular por encima de la puerta en lo alto y ciérrala. Arrodíllate frente a la puerta, mete las manos dentro del loop."
-    },
-    steps: [
-      "Ancla la banda en la parte alta de la puerta cerrada.",
-      "Arrodíllate o siéntate frente a ella. Mete las manos dentro del loop.",
-      "Con el pecho ligeramente elevado, tira hacia abajo llevando los codos a las costillas.",
-      "Aprieta el dorsal abajo — imagina que metes los codos en los bolsillos.",
-      "Sube lento controlando la tensión de la banda."
-    ],
-    tip: "<strong>Clave postura:</strong> No uses el peso del cuerpo para tirar. Si te echas hacia atrás, la banda tiene poca resistencia — busca posición más alejada de la puerta."
-  },
-  {
-    name: "Puente con pausa",
-    muscle: "Lumbar baja · Glúteos · Isquiotibiales",
-    img: "https://www.bodybuildingwizard.com/wp-content/uploads/2014/11/glute-bridge-exercise-2.jpg",
-    anchor: null,
-    steps: [
-      "Boca arriba, rodillas dobladas, pies apoyados a la anchura de caderas.",
-      "Aprieta abdomen y glúteos antes de subir.",
-      "Empuja con los pies y sube las caderas formando una línea hombro-cadera-rodilla.",
-      "Aguanta 3 segundos apretando glúteos con fuerza.",
-      "Baja vértebra a vértebra, lentamente."
-    ],
-    tip: "<strong>Clave postura:</strong> No arquees la lumbar al subir. La pausa activa es lo que fortalece la zona baja y estabiliza la pelvis, corrigiendo la anteversión pélvica."
+// ── GUÍA DE EJERCICIO ────────────────────────────────────
+function openGuide(ei) {
+  const plan = planFor(state.week, state.activeDay);
+  const ex = plan.exercises[ei];
+  if (!ex) return;
+  let html = '<div class="guide-title">' + ex.name + '</div>' +
+    '<div class="guide-muscle">' + ex.m + ' · ' + ex.sets + ' series × ' + ex.reps + '</div>';
+  if (ex.anchor) {
+    html += '<div class="guide-anchor-box"><div class="guide-anchor-label">📌 Material y colocación</div>' +
+      '<div class="guide-anchor-text">' + ex.anchor + '</div></div>';
   }
-];
-
-function openGuide(index) {
-  const g = GUIDES[index];
-  let html = `
-    <div class="guide-title">${g.name}</div>
-    <div class="guide-muscle">${g.muscle}</div>
-    <img class="guide-img" src="${g.img}" alt="${g.name}" onerror="this.style.display='none'">
-  `;
-  if (g.anchor) {
-    html += `
-      <div class="guide-anchor-box">
-        <div class="guide-anchor-label">📌 Cómo anclar la banda circular</div>
-        <img class="guide-anchor-img" src="${g.anchor.img}" alt="ancla" onerror="this.style.display='none'">
-        <div class="guide-anchor-text">${g.anchor.text}</div>
-      </div>
-    `;
-  }
-  html += `<ul class="guide-steps">` + g.steps.map((s,i) =>
-    `<li><span class="step-num">${i+1}</span><span>${s}</span></li>`
-  ).join('') + `</ul>`;
-  html += `<div class="guide-tip">${g.tip}</div>`;
+  const steps = ex.how.split('. ').map(s => s.replace(/\.$/, ''));
+  html += '<ul class="guide-steps">' + steps.map((s, i) =>
+    '<li><span class="step-num">' + (i + 1) + '</span><span>' + s + '.</span></li>').join('') + '</ul>';
+  html += '<div class="guide-tip"><strong>Progresión:</strong> cuando llegues al máximo de reps en todas las series, pasa a una banda más dura o baja más lento (3 s).</div>';
   document.getElementById('guide-content').innerHTML = html;
   document.getElementById('guide-overlay').classList.add('active');
   document.getElementById('guide-overlay').scrollTop = 0;
@@ -1594,234 +1727,104 @@ function closeGuide() {
   document.getElementById('guide-overlay').classList.remove('active');
 }
 
-// ── STRETCHES ────────────────────────────────────────────
-const STRETCHES = [
-  {
-    name: "Postura del niño",
-    time: "60 seg",
-    muscle: "Lumbar · Dorsales · Caderas",
-    img: "https://www.yogajournal.com/wp-content/uploads/2021/10/childs-pose_Andrew-Clark.jpg",
-    steps: [
-      "Arrodíllate en el suelo, siéntate sobre los talones.",
-      "Estira los brazos hacia adelante y baja el pecho hacia el suelo.",
-      "Deja caer la frente al suelo y relaja los hombros.",
-      "Mantén la posición respirando profundamente durante 60 segundos."
-    ],
-    tip: "<strong>Por qué:</strong> Descomprime toda la columna y estira los dorsales que has trabajado."
-  },
-  {
-    name: "Gato-Vaca",
-    time: "10 reps lentas",
-    muscle: "Columna completa · Erectores",
-    img: "https://images.squarespace-cdn.com/content/v1/5b3f5d1b5cfd793b85ce3fc1/1548272534497-TJRHLBWJ0LKTHTVGR8OP/cat-cow.gif",
-    steps: [
-      "A cuatro patas: manos bajo hombros, rodillas bajo caderas.",
-      "VACA: inhala, hunde la barriga, sube la cabeza y el cóccix hacia arriba.",
-      "GATO: exhala, redondea la espalda hacia el techo, mete la barbilla al pecho.",
-      "Alterna lentamente entre las dos posiciones, coordinando con la respiración."
-    ],
-    tip: "<strong>Por qué:</strong> Moviliza toda la columna vertebral y alivia la tensión acumulada en los erectores."
-  },
-  {
-    name: "Hilo de aguja",
-    time: "45 seg cada lado",
-    muscle: "Dorsal · Trapecio · Columna torácica",
-    img: "https://www.spineandposturehealthcenter.com/wp-content/uploads/2021/03/thread-the-needle.jpg",
-    steps: [
-      "A cuatro patas, manos bajo hombros y rodillas bajo caderas.",
-      "Desliza el brazo derecho por el suelo hacia la izquierda, por debajo del cuerpo.",
-      "El hombro derecho y la oreja derecha descansan en el suelo.",
-      "Mantén la cadera elevada y relajada. Aguanta 45 segundos.",
-      "Cambia de lado."
-    ],
-    tip: "<strong>Por qué:</strong> Estira en profundidad la columna torácica y el dorsal, mejorando la rotación de la espalda alta."
-  },
-  {
-    name: "Torsión supina",
-    time: "45 seg cada lado",
-    muscle: "Lumbar · Glúteos · Columna",
-    img: "https://www.verywellfit.com/thmb/TjQv2TuNxZ6H5U5nC4U_jYBvWwY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Supine-Spinal-Twist-a-5c82f7a846e0fb000174a9ea.jpg",
-    steps: [
-      "Tumbado boca arriba, dobla la rodilla derecha hacia el pecho.",
-      "Con la mano izquierda, lleva la rodilla doblada hacia el lado izquierdo del suelo.",
-      "Extiende el brazo derecho hacia el lado, mira hacia la derecha.",
-      "Los hombros permanecen pegados al suelo. Aguanta 45 segundos.",
-      "Cambia de lado."
-    ],
-    tip: "<strong>Por qué:</strong> Alivia la tensión lumbar y mejora la movilidad rotatoria de la columna, clave para una buena postura."
-  },
-  {
-    name: "Estiramiento de cobra",
-    time: "30 seg · 3 veces",
-    muscle: "Abdominales · Columna lumbar",
-    img: "https://www.spineandposturehealthcenter.com/wp-content/uploads/2020/09/cobra-pose.jpg",
-    steps: [
-      "Boca abajo, manos apoyadas bajo los hombros, codos pegados al cuerpo.",
-      "Empuja con las manos para elevar el pecho del suelo.",
-      "Mantén las caderas apoyadas en el suelo.",
-      "Sube hasta donde puedas sin dolor, aguanta 30 segundos.",
-      "Baja y repite 3 veces."
-    ],
-    tip: "<strong>Por qué:</strong> Contrarresta la flexión continua de la columna y estira los músculos abdominales, mejorando la extensión lumbar."
-  },
-  {
-    name: "Estiramiento de pecho en puerta",
-    time: "45 seg · 2 veces",
-    muscle: "Pectoral · Hombros anteriores",
-    img: "https://www.verywellfit.com/thmb/vHm28RU7XZ8ZJ7dPQVSFExjk6mw=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/doorway-chest-stretch-56a2bab35f9b58b7d0cce74e.jpg",
-    steps: [
-      "De pie en el marco de una puerta, apoya los antebrazos en el marco.",
-      "Los codos a la altura de los hombros, formando un ángulo de 90°.",
-      "Da un paso adelante con un pie y deja caer suavemente el pecho hacia adelante.",
-      "Siente el estiramiento en el pecho y la parte anterior del hombro.",
-      "Aguanta 45 segundos. Repite 2 veces."
-    ],
-    tip: "<strong>Por qué:</strong> Esencial para la postura — el pecho acortado es la principal causa de hombros caídos hacia adelante. Este estiramiento lo contrarresta directamente."
-  }
-];
-
-let stretchDone = new Array(STRETCHES.length).fill(false);
-let stretchDetailOpen = new Array(STRETCHES.length).fill(false);
+// ── ESTIRAMIENTOS (popup tras terminar sesión) ───────────
+let currentStretches = [];
+let stretchDone = [];
+let stretchDetailOpen = [];
+let stretchCtx = { week: 1, day: '0' };
 
 function openStretch() {
-  stretchDone = new Array(STRETCHES.length).fill(false);
-  stretchDetailOpen = new Array(STRETCHES.length).fill(false);
+  const plan = planFor(state.week, state.activeDay);
+  currentStretches = plan.stretches.map(k => STRETCH_LIB[k]);
+  stretchDone = currentStretches.map(() => false);
+  stretchDetailOpen = currentStretches.map(() => false);
+  stretchCtx = { week: state.week, day: state.activeDay };
+  const n = currentStretches.length;
+  document.getElementById('stretch-subtitle').textContent =
+    'Vuelta a la calma · ' + plan.focus + ' · ' + n + ' estiramientos · ~' + Math.max(3, Math.round(n * 1.5)) + ' min';
   renderStretchList();
-  document.getElementById('stretch-overlay').classList.add('active');
-  document.getElementById('stretch-overlay').scrollTop = 0;
+  const ov = document.getElementById('stretch-overlay');
+  ov.classList.add('active');
+  ov.scrollTop = 0;
 }
 
 function closeStretch() {
   document.getElementById('stretch-overlay').classList.remove('active');
-  const weekDone = isWeekComplete(state.week);
-  if (weekDone) {
+  const count = sessionIdsForWeek(stretchCtx.week).length;
+  if (count === WEEK_GOAL && state.week === stretchCtx.week) {
     checkAchievements();
-    setTimeout(() => showToast('🏆 ¡Semana ' + state.week + ' completada!'), 300);
-    // Avanzar automáticamente a la semana siguiente
+    setTimeout(() => showToast('🏆 ¡Semana ' + stretchCtx.week + ' completada!'), 300);
     setTimeout(() => {
-      state.week++;
-      state.activeDay = 0;
+      state.week = stretchCtx.week + 1;
+      state.activeDay = '0';
       save();
       render();
     }, 2000);
   } else {
     showToast('🎉 ¡Sesión completada!');
-    renderDays();
-    renderStats();
-    renderMuscleProgress();
-    renderMotivation();
-    renderAchievements();
+    render();
     checkAchievements();
   }
 }
 
-function toggleStretch(i) {
-  stretchDone[i] = !stretchDone[i];
-  renderStretchList();
-}
-
-function toggleStretchDetail(i) {
-  stretchDetailOpen[i] = !stretchDetailOpen[i];
-  renderStretchList();
-}
+function toggleStretch(i) { stretchDone[i] = !stretchDone[i]; renderStretchList(); }
+function toggleStretchDetail(i) { stretchDetailOpen[i] = !stretchDetailOpen[i]; renderStretchList(); }
 
 function renderStretchList() {
+  const total = currentStretches.length;
   const done = stretchDone.filter(Boolean).length;
-  const pct = Math.round((done / STRETCHES.length) * 100);
-  document.getElementById('stretch-done-label').textContent = `${done} de ${STRETCHES.length} completados`;
-  document.getElementById('stretch-pct').textContent = `${pct}%`;
-  document.getElementById('stretch-progress-fill').style.width = `${pct}%`;
-  document.getElementById('stretch-finish-btn').disabled = done < STRETCHES.length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('stretch-done-label').textContent = done + ' de ' + total + ' completados';
+  document.getElementById('stretch-pct').textContent = pct + '%';
+  document.getElementById('stretch-progress-fill').style.width = pct + '%';
+  document.getElementById('stretch-finish-btn').disabled = done < total;
 
-  document.getElementById('stretch-list').innerHTML = STRETCHES.map((s, i) => {
+  document.getElementById('stretch-list').innerHTML = currentStretches.map((s, i) => {
     const checked = stretchDone[i];
     const open = stretchDetailOpen[i];
-    return `
-      <div class="stretch-card ${checked ? 'checked' : ''}">
-        <div class="stretch-card-top" onclick="toggleStretch(${i})">
-          <div class="stretch-card-left">
-            <div class="stretch-check">✓</div>
-            <div class="stretch-card-info">
-              <div class="stretch-name">${s.name}</div>
-              <div class="stretch-meta">
-                <span class="stretch-time">⏱ ${s.time}</span>
-                <span>${s.muscle}</span>
-              </div>
-            </div>
-          </div>
-          <button class="stretch-info-btn" onclick="event.stopPropagation(); toggleStretchDetail(${i})">${open ? '▲' : '?'}</button>
-        </div>
-        <div class="stretch-detail ${open ? 'open' : ''}">
-          <img src="${s.img}" alt="${s.name}" onerror="this.style.display='none'">
-          <ul class="stretch-detail-steps">
-            ${s.steps.map((step, si) => `
-              <li>
-                <span class="stretch-step-num">${si+1}</span>
-                <span>${step}</span>
-              </li>`).join('')}
-          </ul>
-          <div class="stretch-tip">${s.tip}</div>
-        </div>
-      </div>`;
+    return '<div class="stretch-card ' + (checked ? 'checked' : '') + '">' +
+      '<div class="stretch-card-top" onclick="toggleStretch(' + i + ')">' +
+        '<div class="stretch-card-left"><div class="stretch-check">✓</div>' +
+          '<div class="stretch-card-info"><div class="stretch-name">' + s.name + '</div>' +
+            '<div class="stretch-meta"><span class="stretch-time">⏱ ' + s.time + '</span><span>' + s.muscle + '</span></div>' +
+          '</div></div>' +
+        '<button class="stretch-info-btn" onclick="event.stopPropagation(); toggleStretchDetail(' + i + ')">' + (open ? '▲' : '?') + '</button>' +
+      '</div>' +
+      '<div class="stretch-detail ' + (open ? 'open' : '') + '">' +
+        '<ul class="stretch-detail-steps" style="margin-top:12px">' +
+          s.steps.map((st, si) => '<li><span class="stretch-step-num">' + (si + 1) + '</span><span>' + st + '</span></li>').join('') +
+        '</ul><div class="stretch-tip">' + s.tip + '</div>' +
+      '</div></div>';
   }).join('');
 }
 
-// ── ACHIEVEMENTS ─────────────────────────────────────────
-const ACHIEVEMENTS = [
-  { id: 'first_session', icon: '🥇', name: 'Primera sesión', desc: 'Completaste tu primera sesión de entrenamiento.' },
-  { id: 'first_week', icon: '🔥', name: 'Primera semana', desc: 'Completaste tu primera semana de 3 sesiones.' },
-  { id: 'first_boost', icon: '⚡', name: 'Primer boost', desc: 'Superaste las reps objetivo por primera vez.' },
-  { id: 'sets_50', icon: '💪', name: '50 series', desc: 'Acumulaste 50 series completadas en total.' },
-  { id: 'sets_100', icon: '🦾', name: '100 series', desc: 'Acumulaste 100 series completadas. ¡Bestia!' },
-  { id: 'streak_3', icon: '🏆', name: '3 semanas', desc: 'Completaste 3 semanas seguidas sin parar.' },
-  { id: 'streak_5', icon: '👑', name: '5 semanas', desc: '5 semanas consecutivas. ¡Eres constante!' },
-  { id: 'streak_10', icon: '🌟', name: '10 semanas', desc: '10 semanas seguidas. ¡Leyenda!' },
-];
-
-if (!state.achievements) state.achievements = [];
-if (!state.streak) state.streak = 0;
-if (!state.bestStreak) state.bestStreak = 0;
-
+// ── LOGROS Y MOTIVACIÓN ──────────────────────────────────
 let achQueue = [];
 let achShowing = false;
 
-function calcStreak() {
-  let streak = 0;
-  let w = state.week;
-  // Check backwards from current week
-  while (w >= 1) {
-    if (isWeekComplete(w)) streak++;
-    else break;
-    w--;
-  }
-  return streak;
-}
-
 function checkAchievements() {
   const streak = calcStreak();
-  state.streak = streak;
   if (streak > state.bestStreak) state.bestStreak = streak;
-
+  const sets = countSets();
   const toCheck = [
     { id: 'first_session', cond: state.completedSessions.length >= 1 },
-    { id: 'first_week', cond: (() => { const mw = Math.max(...state.completedSessions.map(s=>parseInt(s.split('_')[0])),0); for(let w=1;w<=mw;w++){if(isWeekComplete(w))return true;} return false; })() },
+    { id: 'first_week', cond: anyWeekComplete() },
     { id: 'first_boost', cond: Object.keys(state.boosts).length > 0 },
-    { id: 'sets_50', cond: state.totalSets >= 50 },
-    { id: 'sets_100', cond: state.totalSets >= 100 },
+    { id: 'sets_50', cond: sets >= 50 },
+    { id: 'sets_100', cond: sets >= 100 },
     { id: 'streak_3', cond: state.bestStreak >= 3 },
     { id: 'streak_5', cond: state.bestStreak >= 5 },
-    { id: 'streak_10', cond: state.bestStreak >= 10 },
+    { id: 'streak_10', cond: state.bestStreak >= 10 }
   ];
-
-  toCheck.forEach(({ id, cond }) => {
-    if (cond && !state.achievements.includes(id)) {
-      state.achievements.push(id);
-      const ach = ACHIEVEMENTS.find(a => a.id === id);
+  toCheck.forEach(t => {
+    if (t.cond && state.achievements.indexOf(t.id) === -1) {
+      state.achievements.push(t.id);
+      const ach = ACHIEVEMENTS.find(a => a.id === t.id);
       if (ach) achQueue.push(ach);
     }
   });
-
   save();
+  renderAchievements();
   if (achQueue.length > 0 && !achShowing) showNextAchievement();
 }
 
@@ -1832,15 +1835,12 @@ function showNextAchievement() {
   document.getElementById('ach-icon').textContent = ach.icon;
   document.getElementById('ach-name').textContent = ach.name;
   document.getElementById('ach-desc').textContent = ach.desc;
-  const overlay = document.getElementById('achievement-overlay');
-  const card = document.getElementById('achievement-card');
-  overlay.style.display = 'flex';
-  setTimeout(() => card.classList.add('show'), 50);
+  document.getElementById('achievement-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('achievement-card').classList.add('show'), 50);
 }
 
 function closeAchievement() {
-  const card = document.getElementById('achievement-card');
-  card.classList.remove('show');
+  document.getElementById('achievement-card').classList.remove('show');
   setTimeout(() => {
     document.getElementById('achievement-overlay').style.display = 'none';
     achShowing = false;
@@ -1850,232 +1850,166 @@ function closeAchievement() {
 
 function renderAchievements() {
   const grid = document.getElementById('achievements-grid');
-  if (!grid) return;
   grid.innerHTML = ACHIEVEMENTS.map(a => {
-    const unlocked = state.achievements.includes(a.id);
-    return `<div class="achievement-badge ${unlocked ? 'unlocked' : ''}" title="${a.desc}">
-      <div class="badge-icon">${a.icon}</div>
-      <div class="badge-name">${a.name}</div>
-    </div>`;
+    const unlocked = state.achievements.indexOf(a.id) !== -1;
+    return '<div class="achievement-badge ' + (unlocked ? 'unlocked' : '') + '" title="' + a.desc + '">' +
+      '<div class="badge-icon">' + a.icon + '</div><div class="badge-name">' + a.name + '</div></div>';
   }).join('');
 }
 
 function renderMotivation() {
   const streak = calcStreak();
   const messages = [
-    { min: 0, max: 0, emoji: '🌱', msg: '¡Empieza hoy tu primera semana!', sub: 'El primer paso es el más importante' },
-    { min: 1, max: 2, emoji: '💪', msg: '¡Buen inicio, sigue así!', sub: 'Estás construyendo el hábito' },
-    { min: 3, max: 5, emoji: '🔥', msg: '¡Estás cogiendo ritmo!', sub: 'La constancia es tu superpoder' },
-    { min: 6, max: 9, emoji: '⚡', msg: '¡Imparable! Semana tras semana.', sub: 'Tu espalda te lo agradecerá' },
-    { min: 10, max: 999, emoji: '👑', msg: '¡Eres una máquina, no pares!', sub: streak + ' semanas seguidas. ¡Leyenda!' },
+    { min: 0, max: 0, emoji: '🌱', msg: '¡Empieza hoy tu primera semana!' },
+    { min: 1, max: 2, emoji: '💪', msg: '¡Buen inicio, sigue así!' },
+    { min: 3, max: 5, emoji: '🔥', msg: '¡Estás cogiendo ritmo!' },
+    { min: 6, max: 9, emoji: '⚡', msg: '¡Imparable! Semana tras semana.' },
+    { min: 10, max: 999, emoji: '👑', msg: '¡Eres una máquina, no pares!' }
   ];
-  const m = messages.find(m => streak >= m.min && streak <= m.max);
+  const m = messages.find(x => streak >= x.min && streak <= x.max);
   document.getElementById('motivation-emoji').textContent = m.emoji;
   document.getElementById('motivation-msg').textContent = m.msg;
   document.getElementById('motivation-streak').textContent = streak > 0
-    ? `🔥 Racha: ${streak} semana${streak > 1 ? 's' : ''} · Récord: ${state.bestStreak}`
+    ? '🔥 Racha: ' + streak + ' semana' + (streak > 1 ? 's' : '') + ' · Récord: ' + state.bestStreak
     : 'Racha: 0 semanas';
 }
 
-// ── MUSCLE PROGRESS ──────────────────────────────────────
-const MUSCLE_GROUPS = [
-  { name: "Lumbar", exercises: [0, 3, 6] },        // Superman, Extensión, Puente
-  { name: "Dorsal", exercises: [2, 3, 5] },         // Remo, Pulldown, (Dorsal ancho)
-  { name: "Romboides", exercises: [2, 4] },          // Face Pull, Pull-apart
-  { name: "Trapecios", exercises: [2] },             // Face Pull
-  { name: "Estabilizadores", exercises: [1] }        // Bird-Dog
-];
-
-// Map exercise index to its numeric target reps (use first number if range)
-function targetReps(exIdx) {
-  const r = EXERCISES[exIdx].reps;
-  return parseInt(r.split('-')[0].replace(/[^0-9]/g, '')) || 10;
-}
-
-function getMuscleDataForWeek(muscleExercises, week) {
-  let totalReps = 0;
-  let hasBoosted = false;
-
-  // El 100% = 3 sesiones completas al objetivo (los 3 días fijos)
+// ── PROGRESO POR MÚSCULO ─────────────────────────────────
+// El 100% de cada semana = hacer los 5 días del plan a las reps objetivo (mínimo del rango)
+function getMuscleDataForWeek(group, week) {
   let maxReps = 0;
-  muscleExercises.forEach(ei => {
-    if (ei >= EXERCISES.length) return;
-    maxReps += EXERCISES[ei].sets * targetReps(ei) * 3;
-  });
-
-  // Sumar reps reales de todos los días completados esa semana
-  const allDayIndices = [];
-  for (let i = 0; i < DAYS.length; i++) allDayIndices.push(i);
-  const extras = state.extraSessions[week] || [];
-  extras.forEach((_, i) => allDayIndices.push(DAYS.length + i));
-
-  allDayIndices.forEach(dayIdx => {
-    const sk = `${week}_${dayIdx}`;
-    if (!state.completedSessions.includes(sk)) return;
-    muscleExercises.forEach(ei => {
-      if (ei >= EXERCISES.length) return;
-      const ex = EXERCISES[ei];
-      const target = targetReps(ei);
+  let totalReps = 0;
+  PLAN.forEach(p => p.exercises.forEach(ex => {
+    if (ex.g.indexOf(group) !== -1) maxReps += ex.sets * targetOf(ex);
+  }));
+  sessionIdsForWeek(week).forEach(id => {
+    const plan = planFor(week, id);
+    plan.exercises.forEach((ex, ei) => {
+      if (ex.g.indexOf(group) === -1) return;
       for (let si = 0; si < ex.sets; si++) {
-        const k = key(week, dayIdx, ei, si);
-        if (state.sets[k]) {
-          const bk = boostKey(week, dayIdx, ei, si);
-          const boost = state.boosts[bk];
-          if (boost) { totalReps += boost; hasBoosted = true; }
-          else totalReps += target;
+        if (state.sets[key(week, id, ei, si)]) {
+          const boost = state.boosts[boostKey(week, id, ei, si)];
+          totalReps += boost ? boost : targetOf(ex);
         }
       }
     });
   });
-
-  return { totalReps, maxReps, hasBoosted };
+  return { totalReps: totalReps, maxReps: maxReps };
 }
 
 function renderMuscleProgress() {
   const container = document.getElementById('muscle-progress-content');
-  if (!container) return;
-
-  const maxWeek = Math.max(...state.completedSessions.map(s => parseInt(s.split('_')[0])), 0);
+  const maxWeek = maxWeekWithSessions();
   if (maxWeek === 0) {
     container.innerHTML = '<p class="muscle-no-data">Completa tu primera sesión para ver el progreso.</p>';
     return;
   }
-
-  container.innerHTML = MUSCLE_GROUPS.map(mg => {
-    const bars = [];
+  container.innerHTML = MUSCLE_GROUPS.map(g => {
+    let bars = '';
     for (let w = 1; w <= maxWeek; w++) {
-      const { totalReps, maxReps, hasBoosted } = getMuscleDataForWeek(mg.exercises, w);
-      if (maxReps === 0) continue;
-      const pct = Math.round((totalReps / maxReps) * 100);
-      const barWidth = Math.min(pct, 100);
+      const d = getMuscleDataForWeek(g, w);
+      if (d.maxReps === 0) continue;
+      const pct = Math.round((d.totalReps / d.maxReps) * 100);
       const cls = pct > 100 ? 'boosted' : pct > 0 ? 'normal' : 'empty';
-      bars.push(`
-        <div class="week-bar-row">
-          <span class="week-bar-label">S${w}</span>
-          <div class="week-bar-track">
-            <div class="week-bar-fill ${cls}" style="width:${barWidth}%"></div>
-          </div>
-          <span class="week-bar-pct ${cls}">${pct > 0 ? pct + '%' : '-'}${pct > 100 ? ' ⚡' : ''}</span>
-        </div>`);
+      bars += '<div class="week-bar-row"><span class="week-bar-label">S' + w + '</span>' +
+        '<div class="week-bar-track"><div class="week-bar-fill ' + cls + '" style="width:' + Math.min(pct, 100) + '%"></div></div>' +
+        '<span class="week-bar-pct ' + cls + '">' + (pct > 0 ? pct + '%' : '-') + (pct > 100 ? ' ⚡' : '') + '</span></div>';
     }
-    return `<div class="muscle-group">
-      <div class="muscle-name">${mg.name}</div>
-      ${bars.length ? bars.join('') : '<p class="muscle-no-data">Sin datos aún</p>'}
-    </div>`;
+    return '<div class="muscle-group"><div class="muscle-name">' + g + '</div>' + (bars || '<p class="muscle-no-data">Sin datos aún</p>') + '</div>';
   }).join('');
 }
 
 // ── RENDER ───────────────────────────────────────────────
 function renderDays() {
   const grid = document.getElementById('days-grid');
-  const weekDone = isWeekComplete(state.week);
-  const extras = state.extraSessions[state.week] || [];
+  const wk = state.week;
+  const weekDone = isWeekComplete(wk);
 
-  const fixedDays = DAYS.map((d, i) => {
-    const sk = `${state.week}_${i}`;
-    const done = state.completedSessions.includes(sk);
-    const active = state.activeDay === i;
-    return `<button class="day-btn ${active ? 'active' : ''} ${done ? 'completed' : ''}" onclick="selectDay(${i})">
-      ${d}
-      <span class="check">${done ? '✓ Listo' : active ? '▶ Activo' : ''}</span>
-      ${done ? `<span class="remove-extra" onclick="event.stopPropagation();undoSession('${sk}')">↩ deshacer</span>` : ''}
-    </button>`;
+  const fixed = PLAN.map((p, i) => {
+    const id = String(i);
+    const sk = wk + '_' + id;
+    const done = state.completedSessions.indexOf(sk) !== -1;
+    const active = state.activeDay === id;
+    return '<button class="day-btn ' + (active ? 'active' : '') + ' ' + (done ? 'completed' : '') + '" onclick="selectDay(\'' + id + '\')">' +
+      p.day + '<span class="focus">' + p.focus + '</span>' +
+      '<span class="check">' + (done ? '✓ Listo' : active ? '▶ Activo' : '') + '</span>' +
+      (done ? '<span class="remove-extra" onclick="event.stopPropagation();undoSession(\'' + sk + '\')">↩ deshacer</span>' : '') +
+      '</button>';
   }).join('');
 
-  const extraDays = extras.map((ex, i) => {
-    const dayIdx = DAYS.length + i;
-    const sk = `${state.week}_${dayIdx}`;
-    const done = state.completedSessions.includes(sk);
-    const active = state.activeDay === dayIdx;
-    return `<button class="day-btn extra ${active ? 'active' : ''} ${done ? 'completed' : ''}" onclick="selectDay(${dayIdx})">
-      <span class="extra-label">extra</span>
-      ${ex.name}
-      <span class="check">${done ? '✓ Listo' : active ? '▶ Activo' : ''}</span>
-      ${done ? `<span class="remove-extra" onclick="event.stopPropagation();undoSession('${sk}')">↩ deshacer</span>` : `<span class="remove-extra" onclick="event.stopPropagation();removeExtraSession(${i})">✕ quitar</span>`}
-    </button>`;
+  const extras = extrasOf(wk).map(e => {
+    const id = 'x' + e.id;
+    const sk = wk + '_' + id;
+    const done = state.completedSessions.indexOf(sk) !== -1;
+    const active = state.activeDay === id;
+    return '<button class="day-btn extra ' + (active ? 'active' : '') + ' ' + (done ? 'completed' : '') + '" onclick="selectDay(\'' + id + '\')">' +
+      '<span class="extra-label">extra</span>' + e.name +
+      '<span class="focus">' + PLAN[e.base].focus + '</span>' +
+      '<span class="check">' + (done ? '✓ Listo' : active ? '▶ Activo' : '') + '</span>' +
+      (done
+        ? '<span class="remove-extra" onclick="event.stopPropagation();undoSession(\'' + sk + '\')">↩ deshacer</span>'
+        : '<span class="remove-extra" onclick="event.stopPropagation();removeExtraSession(\'' + id + '\')">✕ quitar</span>') +
+      '</button>';
   }).join('');
 
-  grid.innerHTML = fixedDays + extraDays;
+  grid.innerHTML = fixed + extras;
 
-  // Banner semana completa
   let banner = document.getElementById('week-complete-banner');
   if (weekDone) {
     if (!banner) {
       banner = document.createElement('div');
       banner.id = 'week-complete-banner';
-      banner.style.cssText = `text-align:center;padding:10px;margin-bottom:16px;
-        background:rgba(232,255,71,0.08);border:1px solid var(--accent);
-        border-radius:12px;font-family:'Bebas Neue',sans-serif;
-        font-size:1rem;letter-spacing:0.08em;color:var(--accent);`;
-      banner.textContent = '🏆 SEMANA ' + state.week + ' COMPLETADA';
+      banner.style.cssText = "text-align:center;padding:10px;margin-bottom:16px;background:rgba(232,255,71,0.08);border:1px solid var(--accent);border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.08em;color:var(--accent);";
       grid.parentNode.insertBefore(banner, grid);
     }
+    banner.textContent = '🏆 SEMANA ' + wk + ' COMPLETADA';
   } else if (banner) {
     banner.remove();
   }
 }
 
 function renderExercises() {
-  const list = document.getElementById('exercise-list');
-  document.getElementById('session-title').textContent = DAYS[state.activeDay];
-  list.innerHTML = EXERCISES.map((ex, ei) => {
-    const sets = Array.from({length: ex.sets}, (_, si) => {
+  const plan = planFor(state.week, state.activeDay);
+  document.getElementById('session-title').textContent = dayLabel(state.week, state.activeDay) + ' · ' + plan.focus;
+  document.getElementById('exercise-list').innerHTML = plan.exercises.map((ex, ei) => {
+    const sets = Array.from({ length: ex.sets }, (_, si) => {
       const done = !!state.sets[key(state.week, state.activeDay, ei, si)];
-      const bk = boostKey(state.week, state.activeDay, ei, si);
-      const boost = state.boosts[bk];
-      return `<div class="set-wrapper">
-        <div class="set-item ${done ? 'done' : ''}" onclick="toggleSet(${ei},${si})">
-          <div class="set-label">Serie ${si + 1}</div>
-          <div class="set-reps">${ex.reps}</div>
-          <div class="set-done-icon">✓</div>
-        </div>
-        <div id="boost-wrap-${ei}-${si}">
-          <button class="boost-btn ${boost ? 'has-boost' : ''}" onclick="openBoost(${ei},${si})">
-            ${boost ? `⚡ ${boost} reps` : '⚡ boost'}
-          </button>
-        </div>
-      </div>`;
+      const boost = state.boosts[boostKey(state.week, state.activeDay, ei, si)];
+      return '<div class="set-wrapper">' +
+        '<div class="set-item ' + (done ? 'done' : '') + '" onclick="toggleSet(' + ei + ',' + si + ')">' +
+          '<div class="set-label">Serie ' + (si + 1) + '</div><div class="set-reps">' + ex.reps + '</div><div class="set-done-icon">✓</div></div>' +
+        '<div id="boost-wrap-' + ei + '-' + si + '"><button class="boost-btn ' + (boost ? 'has-boost' : '') + '" onclick="openBoost(' + ei + ',' + si + ')">' +
+          (boost ? '⚡ ' + boost + ' reps' : '⚡ boost') + '</button></div></div>';
     }).join('');
-    return `<div class="exercise-card">
-      <div class="exercise-top-row">
-        <div class="exercise-name">${ex.name} <span class="muscle-tag">${ex.muscle}</span></div>
-        <button class="info-btn" onclick="openGuide(${ei})">?</button>
-      </div>
-      <div class="sets-row">${sets}</div>
-    </div>`;
+    return '<div class="exercise-card"><div class="exercise-top-row">' +
+      '<div class="exercise-name">' + ex.name + ' <span class="muscle-tag">' + ex.m + '</span></div>' +
+      '<button class="info-btn" onclick="openGuide(' + ei + ')">?</button></div>' +
+      '<div class="sets-row">' + sets + '</div></div>';
   }).join('');
 }
 
 function renderProgress() {
+  const plan = planFor(state.week, state.activeDay);
   let done = 0;
-  EXERCISES.forEach((ex, ei) => {
-    for (let si = 0; si < ex.sets; si++) {
-      if (state.sets[key(state.week, state.activeDay, ei, si)]) done++;
-    }
+  plan.exercises.forEach((ex, ei) => {
+    for (let si = 0; si < ex.sets; si++) if (state.sets[key(state.week, state.activeDay, ei, si)]) done++;
   });
-  document.getElementById('progress-text').textContent = `${done} / ${TOTAL_SETS} series`;
-  document.getElementById('progress-fill').style.width = `${(done / TOTAL_SETS) * 100}%`;
-}
-
-function isWeekComplete(week) {
-  const sessionsThisWeek = state.completedSessions.filter(s => s.startsWith(`${week}_`));
-  return sessionsThisWeek.length >= 3;
+  const total = totalSetsOf(plan);
+  document.getElementById('progress-text').textContent = done + ' / ' + total + ' series';
+  document.getElementById('progress-fill').style.width = (done / total * 100) + '%';
 }
 
 function renderStats() {
   document.getElementById('stat-sessions').textContent = state.completedSessions.length;
-  document.getElementById('stat-sets').textContent = state.totalSets;
-  // Contar semanas donde los 3 días están completados
-  const maxWeek = Math.max(...state.completedSessions.map(s => parseInt(s.split('_')[0])), 0);
+  document.getElementById('stat-sets').textContent = countSets();
   let fullWeeks = 0;
-  for (let w = 1; w <= maxWeek; w++) {
-    if (isWeekComplete(w)) fullWeeks++;
-  }
+  const mw = maxWeekWithSessions();
+  for (let w = 1; w <= mw; w++) if (isWeekComplete(w)) fullWeeks++;
   document.getElementById('stat-weeks').textContent = fullWeeks;
 }
 
 function render() {
-  document.getElementById('week-label').textContent = `SEMANA ${state.week}`;
+  document.getElementById('week-label').textContent = 'SEMANA ' + state.week;
   renderDays();
   renderExercises();
   renderProgress();
