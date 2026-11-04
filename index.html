@@ -1031,6 +1031,14 @@
   .picker-btn { background:var(--surface2); border:1px solid var(--border); color:var(--text); border-radius:10px; padding:10px 4px; font-family:'Bebas Neue',sans-serif; font-size:0.95rem; letter-spacing:0.05em; cursor:pointer; }
   .picker-btn span { display:block; font-family:'DM Sans',sans-serif; font-size:0.55rem; color:var(--muted); margin-top:2px; text-transform:uppercase; }
   .picker-btn:hover { border-color:var(--accent2); }
+  .top-actions { display:flex; gap:6px; align-items:center; flex-shrink:0; margin-left:8px; }
+  .rest-btn { background:transparent; border:1px solid var(--border); color:var(--accent2); border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .rest-btn:hover { border-color:var(--accent2); }
+  .rest-edit { display:flex; align-items:center; gap:6px; margin:-4px 0 12px; font-size:0.72rem; color:var(--muted); }
+  .rest-edit span { flex:1; }
+  .rest-edit input { width:64px; background:var(--bg); border:1px solid var(--accent2); border-radius:6px; padding:4px 6px; color:var(--text); text-align:center; font-size:0.85rem; }
+  .rest-ok { background:var(--accent2); color:#000; border:none; border-radius:6px; padding:5px 10px; font-weight:600; cursor:pointer; }
+  .rest-auto { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:5px 8px; font-size:0.72rem; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -1231,10 +1239,11 @@ function playWhistle() {
   } catch(e) {}
 }
 
-function startTimer(exerciseName) {
+function startTimer(exerciseName, secs) {
   if (timerInterval) clearInterval(timerInterval);
-  timerRemaining = TIMER_DURATION;
-  timerTotal = TIMER_DURATION;
+  const dur = secs > 0 ? secs : TIMER_DURATION;
+  timerRemaining = dur;
+  timerTotal = dur;
   document.getElementById('timer-exercise-name').textContent = '↻ Siguiente: ' + exerciseName;
   updateTimerDisplay();
   document.getElementById('timer-overlay').classList.add('active');
@@ -1394,6 +1403,20 @@ const PLAN = [
   }
 ];
 
+// Descanso recomendado (seg): 90-120 en ejercicios pesados, 60 en secundarios, 45 en aislamiento/core
+const REST_DEFAULTS = {
+  "Flexiones con banda por la espalda": 90, "Flexiones declinadas": 90, "Press de pecho con banda": 90,
+  "Aperturas de pecho con banda": 60, "Extensión de tríceps con banda": 60, "Fondos en silla": 60,
+  "Remo con banda": 90, "Pulldown con banda": 90, "Remo a una mano": 60, "Face pull con banda": 45,
+  "Pull-apart con banda": 45, "Curl de bíceps con banda": 60,
+  "Sentadilla con banda": 120, "Zancada búlgara": 90, "Peso muerto rumano con banda": 90,
+  "Puente de glúteos con mini loop": 60, "Caminata lateral con mini loop": 45, "Elevación de gemelos a una pierna": 45,
+  "Press de hombros con banda": 90, "Elevaciones laterales con banda": 60, "Pájaros con banda": 45,
+  "Plancha": 45, "Crunch con banda anclada arriba": 45, "Elevaciones de piernas tumbado": 45,
+  "Superman": 45, "Bird-Dog": 45, "Buenos días con banda": 90, "Puente a una pierna con pausa": 60,
+  "Superserie: curl martillo + tríceps sobre la cabeza": 60, "Pull-apart con mini loop": 45
+};
+
 const MUSCLE_GROUPS = ["Pecho", "Espalda", "Hombros", "Bíceps", "Tríceps", "Piernas", "Glúteos", "Core", "Lumbar"];
 
 // ── ESTIRAMIENTOS ────────────────────────────────────────
@@ -1472,7 +1495,7 @@ function loadState() {
   try { s = JSON.parse(safeGet(STORAGE_KEY) || 'null'); } catch (e) { s = null; }
   if (!s) {
     s = { week: 1, activeDay: '0', sets: {}, boosts: {}, completedSessions: [], extraSessions: {},
-          nextExtraId: 1, achievements: [], bestStreak: 0 };
+          nextExtraId: 1, achievements: [], bestStreak: 0, rest: {} };
     // Los logros ya conseguidos con el plan anterior se conservan
     try {
       const old = JSON.parse(safeGet('espalda_state') || 'null');
@@ -1486,6 +1509,7 @@ function loadState() {
   if (!s.nextExtraId) s.nextExtraId = 1;
   if (!s.achievements) s.achievements = [];
   if (!s.bestStreak) s.bestStreak = 0;
+  if (!s.rest) s.rest = {};
   s.activeDay = String(s.activeDay === undefined ? '0' : s.activeDay);
   return s;
 }
@@ -1519,6 +1543,37 @@ function targetOf(ex) {
 
 function totalSetsOf(plan) { return plan.exercises.reduce((s, e) => s + e.sets, 0); }
 function countSets() { return Object.keys(state.sets).filter(k => state.sets[k]).length; }
+
+function getRest(ex) { return state.rest[ex.name] || REST_DEFAULTS[ex.name] || 60; }
+
+function openRest(ei) {
+  const box = document.getElementById('rest-edit-' + ei);
+  if (box.innerHTML) { box.innerHTML = ''; return; }
+  const ex = planFor(state.week, state.activeDay).exercises[ei];
+  const auto = REST_DEFAULTS[ex.name] || 60;
+  box.innerHTML = '<div class="rest-edit"><span>Descanso (seg)</span>' +
+    '<input id="rest-input-' + ei + '" type="number" min="10" max="180" value="' + getRest(ex) + '">' +
+    '<button class="rest-ok" onclick="saveRest(' + ei + ')">✓</button>' +
+    '<button class="rest-auto" onclick="resetRest(' + ei + ')">↺ ' + auto + 's</button></div>';
+  document.getElementById('rest-input-' + ei).focus();
+}
+
+function saveRest(ei) {
+  const ex = planFor(state.week, state.activeDay).exercises[ei];
+  let v = parseInt(document.getElementById('rest-input-' + ei).value, 10);
+  if (isNaN(v)) { resetRest(ei); return; }
+  v = Math.max(10, Math.min(180, v));
+  state.rest[ex.name] = v;
+  save();
+  renderExercises();
+}
+
+function resetRest(ei) {
+  const ex = planFor(state.week, state.activeDay).exercises[ei];
+  delete state.rest[ex.name];
+  save();
+  renderExercises();
+}
 
 function nextLabel(plan, ei, si) {
   const ex = plan.exercises[ei];
@@ -1570,7 +1625,7 @@ function toggleSet(ei, si) {
   const plan = planFor(state.week, state.activeDay);
   const k = key(state.week, state.activeDay, ei, si);
   state.sets[k] = !state.sets[k];
-  if (state.sets[k]) startTimer(nextLabel(plan, ei, si));
+  if (state.sets[k]) startTimer(nextLabel(plan, ei, si), getRest(plan.exercises[ei]));
   else skipTimer();
   save();
   renderExercises();
@@ -1607,7 +1662,7 @@ function saveBoost(ei, si) {
     const k = key(state.week, state.activeDay, ei, si);
     if (!state.sets[k]) {
       state.sets[k] = true;
-      startTimer(nextLabel(plan, ei, si));
+      startTimer(nextLabel(plan, ei, si), getRest(plan.exercises[ei]));
     }
   } else {
     delete state.boosts[bk];
@@ -1983,7 +2038,9 @@ function renderExercises() {
     }).join('');
     return '<div class="exercise-card"><div class="exercise-top-row">' +
       '<div class="exercise-name">' + ex.name + ' <span class="muscle-tag">' + ex.m + '</span></div>' +
-      '<button class="info-btn" onclick="openGuide(' + ei + ')">?</button></div>' +
+      '<div class="top-actions"><button class="rest-btn" onclick="openRest(' + ei + ')">⏱ ' + getRest(ex) + 's</button>' +
+      '<button class="info-btn" onclick="openGuide(' + ei + ')">?</button></div></div>' +
+      '<div id="rest-edit-' + ei + '"></div>' +
       '<div class="sets-row">' + sets + '</div></div>';
   }).join('');
 }
